@@ -6,7 +6,7 @@
 
 <details open>
 <summary>Who copies Boot ROM to the 0th location of Memory? Memory is volatile so someone should do it.</summary>
-<p>ask prof</p>
+<p><h1>ask prof</h1></p>
 </details>
 <br>
 
@@ -18,6 +18,12 @@
 
 <details open>
 <summary>What is the size of one char here? (most probably 8)</summary>
-<p>ask prof</p>
+<p><h1>ask prof</h1></p>
+</details>
+<br>
+
+<details open>
+<summary>In stage 1: its written one word is 16 characters long. But in stage 3 one string can only hold 13 characters. Why?</summary>
+<p><h1>ask prof</h1></p>
 </details>
 <br>
