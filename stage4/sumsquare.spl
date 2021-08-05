@@ -1,0 +1,11 @@
+//Write the spl program to print sum of squares of the first 20 natural numbers. Load it using xfs interface and run the in the machine.
+alias i R0;
+i = 1;
+alias sum R1;
+sum = 0;
+while(i <= 20) do
+	sum = sum + i * i;
+	i = i + 1;
+endwhile;
+print sum;
+

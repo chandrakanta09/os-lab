@@ -4,11 +4,10 @@ OS Lab - National Institute of Technology, Calicut
 
 ## Stages
 
- - [x] Stage 0
- - [x] Stage 1
- - [x] Stage 2
- - [x] Stage 3
- - [ ] Stage 4
+ - [x] Stage 1: Download
+ - [x] Stage 2: File system inro
+ - [x] Stage 3: Bootstrap
+ - [x] Stage 4: SPL language intro
  - [ ] Stage 5
  - [ ] Stage 6
  - [ ] Stage 7
