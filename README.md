@@ -8,7 +8,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 2: File system inro
  - [x] Stage 3: Bootstrap
  - [x] Stage 4: SPL language intro
- - [ ] Stage 5
+ - [x] Stage 5: Used the debugger
  - [ ] Stage 6
  - [ ] Stage 7
  - [ ] Stage 8
