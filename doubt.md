@@ -27,3 +27,9 @@
 <p><h1>ask prof</h1></p>
 </details>
 <br>
+
+<details open>
+<summary>MOV [1500], R0 in unprevilaged mode will set dirty bit to 1, since  the mem location is modified. But will the reference bit be made to 1. aka Is modification a subset of referencing?</summary>
+<p><h1>ask prof</h1></p>
+</details>
+<br>
