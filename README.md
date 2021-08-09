@@ -9,7 +9,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 3: Bootstrap
  - [x] Stage 4: SPL language intro
  - [x] Stage 5: Used the debugger
- - [ ] Stage 6
+ - [x] Stage 6: Pagin and user mode execution
  - [ ] Stage 7
  - [ ] Stage 8
  - [ ] Stage 9
