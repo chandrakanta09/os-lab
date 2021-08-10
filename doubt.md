@@ -4,9 +4,13 @@
 </details>
 <br>
 
-<details open>
+<details close>
 <summary>Who copies Boot ROM to the 0th location of Memory? Memory is volatile so someone should do it.</summary>
-<p><h1>ask prof</h1></p>
+<p> answer was discussed in the xos google group.</br>
+<a href="https://groups.google.com/g/xos-users/c/cnQkHeGSafY/m/ebEFi2PmAgAJ"> grp discussion </a>
+</br>
+<img src="img/rom_doubt.png">
+</p>
 </details>
 <br>
 
