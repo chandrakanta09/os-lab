@@ -32,8 +32,24 @@
 </details>
 <br>
 
-<details open>
+<details close>
 <summary>MOV [1500], R0 in unprevilaged mode will set dirty bit to 1, since  the mem location is modified. But will the reference bit be made to 1. aka Is modification a subset of referencing?</summary>
-<p><h1>ask prof</h1></p>
+<p>yes, (i think)</p>
+</details>
+<br>
+
+<details open>
+<summary>
+When we are in the middle of a user program. And when an interrupt gets hit.
+The IP value will be pushed into the stack, then SP++.
+IP will be changed to the destination where the interrupt code is present.
+<br/>
+So when we are in the interrupt's code. The SP will be storing the logical address value that we already kept.
+Does this mean that we can't use the stack while writing the interrupt code? Right?
+</summary>
+<p>yes, (i think)
+<br/>
+or else we will have to store SP value in some register and then make the value the old one before doing ireturn.
+</p>
 </details>
 <br>
