@@ -55,3 +55,9 @@ Kernel maintains a new thing called kernal stack - stage 9 stuff
 </p>
 </details>
 <br>
+
+<details open>
+<summary> What is the use of Base pointer (BP) ? </summary>
+<p>ask</p>
+</details>
+<br>
