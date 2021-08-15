@@ -1,0 +1,5 @@
+MOV R16, "timer"
+PORT P1, R16
+OUT
+IRET
+HALT
