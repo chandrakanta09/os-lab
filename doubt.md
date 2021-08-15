@@ -38,7 +38,7 @@
 </details>
 <br>
 
-<details open>
+<details close>
 <summary>
 When we are in the middle of a user program. And when an interrupt gets hit.
 The IP value will be pushed into the stack, then SP++.
@@ -50,6 +50,8 @@ Does this mean that we can't use the stack while writing the interrupt code? Rig
 <p>yes, (i think)
 <br/>
 or else we will have to store SP value in some register and then make the value the old one before doing ireturn.
+<br/>
+Kernel maintains a new thing called kernal stack - stage 9 stuff
 </p>
 </details>
 <br>
