@@ -10,7 +10,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 4: SPL language intro
  - [x] Stage 5: Used the debugger
  - [x] Stage 6: Pagin and user mode execution
- - [ ] Stage 7
+ - [x] Stage 7: User program with ABI header
  - [ ] Stage 8
  - [ ] Stage 9
  - [ ] Stage 10
