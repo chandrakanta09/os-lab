@@ -1,0 +1,15 @@
+//save the user stack pointer
+[PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE+1]*16 ) + 13] = SP;
+
+//get the kernal stack pointer
+//SP = UArea pg num * 512 - 1;
+SP = [PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE+1]*16 ) + 11] * 512 - 1;
+
+backup;
+print "Timer";
+restore;
+
+//getting the value of user stack
+SP = [PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE+1]*16 ) + 13];
+
+ireturn;

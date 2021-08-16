@@ -12,7 +12,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 6: Pagin and user mode execution
  - [x] Stage 7: User program with ABI header
  - [x] Stage 8: Timer interrupt sample code
- - [ ] Stage 9
+ - [x] Stage 9: Kernal Stack
  - [ ] Stage 10
  - [ ] Stage 11
  - [ ] Stage 12
