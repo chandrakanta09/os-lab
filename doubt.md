@@ -58,6 +58,13 @@ Kernel maintains a new thing called kernal stack - stage 9 stuff
 
 <details open>
 <summary> What is the use of Base pointer (BP) ? </summary>
-<p>ask</p>
+<p><h1>ask</h1></p>
+</details>
+<br>
+
+<details open>
+<summary>In stage 9 while modifying the timer interrup code. I was not able to use R16 to R19 registes.
+But in theory in Kernal moe R16 to R19 should be available. Why was I not able to use them?</summary>
+<p><h1>ask</h1></p>
 </details>
 <br>
