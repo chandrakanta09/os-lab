@@ -68,3 +68,10 @@ But in theory in Kernal moe R16 to R19 should be available. Why was I not able t
 <p><h1>ask</h1></p>
 </details>
 <br>
+
+<details colse>
+<summary>Will the valuse inside xsm disk be saved even after my unix system is rebooted.</summary>
+<p>Yes, I just checked what are the contents of my disk using the copy xfs-interface command. And my old code is still in it (The ones that I loaded in my last coding session).</p>
+</details>
+<br>
+
