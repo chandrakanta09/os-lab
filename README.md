@@ -13,7 +13,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 7: User program with ABI header
  - [x] Stage 8: Timer interrupt sample code
  - [x] Stage 9: Kernal Stack
- - [ ] Stage 10
+ - [x] Stage 10: Write system call sample
  - [ ] Stage 11
  - [ ] Stage 12
  - [ ] Stage 13
