@@ -11,3 +11,4 @@ y.tab.h
 expl_progs/
 .DS_Store
 .vscode/*
+samples/

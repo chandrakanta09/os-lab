@@ -14,7 +14,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 8: Timer interrupt sample code
  - [x] Stage 9: Kernal Stack
  - [x] Stage 10: Write system call sample
- - [ ] Stage 11
+ - [x] Stage 11: Intro to ExpL - writing my own library for write system call. This was a fun one. Tip: If you dont get something sleep over it.
  - [ ] Stage 12
  - [ ] Stage 13
  - [ ] Stage 14
