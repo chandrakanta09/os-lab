@@ -75,3 +75,8 @@ But in theory in Kernal moe R16 to R19 should be available. Why was I not able t
 </details>
 <br>
 
+<details close>
+<summary>When we execute library code will the register values be disturbed?</summary>
+<p>Yes, If you need proof go and read the library.lib file inside myexpos/expl/ directory</p>
+</details>
+<br>
