@@ -1,0 +1,194 @@
+n_sd@yoda:~/.../os-lab-vacation/myexpos/xsm$ ./xsm --timer 2 --debug
+Previous instruction at IP = 2048: BRKP
+Mode: KERNEL 	 PID: 1
+Next instruction at IP = 2050, Page No. = 4: MOV R16,28672
+debug> l
+2030 	  
+2032 	  
+2034 	  
+2036 	  
+2038 	  
+2040 	  
+2042 	  
+2044 	  
+2046 	  
+2048 	 BRKP 
+2050* 	 MOV R16,28672 
+2052 	 MOV R17,29560 
+2054 	 ADD R17,1 
+2056 	 MOV R17,[R17] 
+2058 	 MUL R17,16 
+2060 	 ADD R16,R17 
+2062 	 ADD R16,13 
+2064 	 MOV [R16],SP 
+2066 	 MOV R16,28672 
+2068 	 MOV R17,29560 
+2070 	 ADD R17,1 
+debug> pcb
+Tick: 		 
+PID: 		1 
+PPID: 		 
+UserID: 		 
+State: 		(RUNNING, )
+Swap Flag: 		 
+Inode Index: 		 
+Input Buffer: 		 
+Mode Flag: 		
+User Area Swap Status: 		 
+User Area Page Number: 		80 
+Kernel Stack Pointer: 		0 
+User Stack Pointer: 		4096 
+PTBR: 		29716 
+PTLR: 		10 
+debug> pt
+VIRT: 0		PHY: 63		AUX: 0100	
+VIRT: 1		PHY: 64		AUX: 0100	
+VIRT: 2		PHY: 78		AUX: 0110	
+VIRT: 3		PHY: 79		AUX: 0110	
+VIRT: 4		PHY: 65		AUX: 0100	
+VIRT: 5		PHY: 66		AUX: 0100	
+VIRT: 6		PHY: -1		AUX: 0000	
+VIRT: 7		PHY: -1		AUX: 0000	
+VIRT: 8		PHY: 76		AUX: 0110	
+VIRT: 9		PHY: 77		AUX: 0110	
+debug> c
+Previous instruction at IP = 2224: BRKP
+Mode: KERNEL 	 PID: 0
+Next instruction at IP = 2226, Page No. = 4: IRET
+debug> l
+2206 	 EQ R16,R17 
+2208 	 JZ R16,2230 
+2210 	 MOV R16,R3 
+2212 	 ADD R16,4 
+2214 	 MOV [R16],2 
+2216 	 MOV R16,R3 
+2218 	 ADD R16,13 
+2220 	 MOV R16,[R16] 
+2222 	 MOV SP,R16 
+2224 	 BRKP 
+2226* 	 IRET 
+2228 	 JMP 2230 
+2230 	 MOV R16,R3 
+2232 	 ADD R16,4 
+2234 	 MOV [R16],2 
+2236 	 RESTORE 
+2238 	 MOV R16,28672 
+2240 	 MOV R17,29560 
+2242 	 ADD R17,1 
+2244 	 MOV R17,[R17] 
+2246 	 MUL R17,16 
+debug> pcb
+Tick: 		 
+PID: 		0 
+PPID: 		 
+UserID: 		 
+State: 		(RUNNING, )
+Swap Flag: 		 
+Inode Index: 		 
+Input Buffer: 		 
+Mode Flag: 		
+User Area Swap Status: 		 
+User Area Page Number: 		82 
+Kernel Stack Pointer: 		0 
+User Stack Pointer: 		4096 
+PTBR: 		29696 
+PTLR: 		10 
+debug> pt
+VIRT: 0		PHY: 63		AUX: 0100	
+VIRT: 1		PHY: 64		AUX: 0100	
+VIRT: 2		PHY: -1		AUX: 0000	
+VIRT: 3		PHY: -1		AUX: 0000	
+VIRT: 4		PHY: 69		AUX: 0100	
+VIRT: 5		PHY: 70		AUX: 0100	
+VIRT: 6		PHY: -1		AUX: 0000	
+VIRT: 7		PHY: -1		AUX: 0000	
+VIRT: 8		PHY: 81		AUX: 0110	
+VIRT: 9		PHY: -1		AUX: 0000	
+debug> c
+Previous instruction at IP = 2048: BRKP
+Mode: KERNEL 	 PID: 0
+Next instruction at IP = 2050, Page No. = 4: MOV R16,28672
+debug> pcb
+Tick: 		 
+PID: 		0 
+PPID: 		 
+UserID: 		 
+State: 		(RUNNING, )
+Swap Flag: 		 
+Inode Index: 		 
+Input Buffer: 		 
+Mode Flag: 		
+User Area Swap Status: 		 
+User Area Page Number: 		82 
+Kernel Stack Pointer: 		0 
+User Stack Pointer: 		4096 
+PTBR: 		29696 
+PTLR: 		10 
+debug> pt
+VIRT: 0		PHY: 63		AUX: 0100	
+VIRT: 1		PHY: 64		AUX: 0100	
+VIRT: 2		PHY: -1		AUX: 0000	
+VIRT: 3		PHY: -1		AUX: 0000	
+VIRT: 4		PHY: 69		AUX: 0100	
+VIRT: 5		PHY: 70		AUX: 0100	
+VIRT: 6		PHY: -1		AUX: 0000	
+VIRT: 7		PHY: -1		AUX: 0000	
+VIRT: 8		PHY: 81		AUX: 0110	
+VIRT: 9		PHY: -1		AUX: 0000	
+debug> c
+Previous instruction at IP = 2256: BRKP
+Mode: KERNEL 	 PID: 1
+Next instruction at IP = 2258, Page No. = 4: IRET
+debug> pcb
+Tick: 		 
+PID: 		1 
+PPID: 		 
+UserID: 		 
+State: 		(RUNNING, )
+Swap Flag: 		 
+Inode Index: 		 
+Input Buffer: 		 
+Mode Flag: 		
+User Area Swap Status: 		 
+User Area Page Number: 		80 
+Kernel Stack Pointer: 		20 
+User Stack Pointer: 		4096 
+PTBR: 		29716 
+PTLR: 		10 
+debug> pt
+VIRT: 0		PHY: 63		AUX: 0100	
+VIRT: 1		PHY: 64		AUX: 0100	
+VIRT: 2		PHY: 78		AUX: 0110	
+VIRT: 3		PHY: 79		AUX: 0110	
+VIRT: 4		PHY: 65		AUX: 0100	
+VIRT: 5		PHY: 66		AUX: 0100	
+VIRT: 6		PHY: -1		AUX: 0000	
+VIRT: 7		PHY: -1		AUX: 0000	
+VIRT: 8		PHY: 76		AUX: 0110	
+VIRT: 9		PHY: 77		AUX: 0110	
+debug> c
+Previous instruction at IP = 2048: BRKP
+Mode: KERNEL 	 PID: 1
+Next instruction at IP = 2050, Page No. = 4: MOV R16,28672
+debug> c
+Previous instruction at IP = 2256: BRKP
+Mode: KERNEL 	 PID: 0
+Next instruction at IP = 2258, Page No. = 4: IRET
+debug> c
+Previous instruction at IP = 2048: BRKP
+Mode: KERNEL 	 PID: 0
+Next instruction at IP = 2050, Page No. = 4: MOV R16,28672
+debug> c
+Previous instruction at IP = 2256: BRKP
+Mode: KERNEL 	 PID: 1
+Next instruction at IP = 2258, Page No. = 4: IRET
+debug> c
+Previous instruction at IP = 2048: BRKP
+Mode: KERNEL 	 PID: 1
+Next instruction at IP = 2050, Page No. = 4: MOV R16,28672
+debug> c
+Previous instruction at IP = 2256: BRKP
+Mode: KERNEL 	 PID: 0
+Next instruction at IP = 2258, Page No. = 4: IRET
+debug> ^C
+

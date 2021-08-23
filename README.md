@@ -15,7 +15,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 9: Kernal Stack
  - [x] Stage 10: Write system call sample
  - [x] Stage 11: Intro to ExpL - writing my own library for write system call. This was a fun one. Tip: If you dont get something sleep over it.
- - [ ] Stage 12
+ - [x] Stage 12: Made a small scheduler using timer interrupt
  - [ ] Stage 13
  - [ ] Stage 14
  - [ ] Stage 15

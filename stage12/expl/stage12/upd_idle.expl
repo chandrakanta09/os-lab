@@ -1,0 +1,20 @@
+int main()
+{
+decl
+	int temp, num;
+	str s;
+enddecl
+
+begin
+	breakpoint;
+	num = 101;
+	while( num <= 200 ) do
+		temp = exposcall ("Write", -2, num);
+		num = num + 1;
+	endwhile;
+	s = "101-200 over";
+	temp = exposcall ("Write", -2, s);
+	return 0;
+end
+}
+
