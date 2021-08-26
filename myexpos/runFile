@@ -1,8 +1,8 @@
-load --library ../expl/library.lib
+load --library ../expl/samples/stage11/sample_lib.xsm
 load --exhandler ../spl/spl_progs/exhandler_new.xsm
-load --int=timer ../spl/spl_progs/stage12/timer_shedule.xsm
-load --init ../expl/samples/stage12/numbers_stage11.xsm
+load --int=timer ../spl/spl_progs/stage9/sample_timer.xsm
+load --init ../spl/spl_progs/stage10/usr_prg.xsm
 load --int=7 ../spl/spl_progs/stage10/sample_int7.xsm
 load --int=10 ../spl/spl_progs/int10_new.xsm
-load --os ../spl/spl_progs/stage12/os_startup.xsm
+load --os ../spl/spl_progs/stage10/os_startup.xsm
 load --idle ../expl/samples/stage12/sample_idle.xsm
