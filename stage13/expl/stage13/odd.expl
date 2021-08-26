@@ -1,0 +1,22 @@
+int main()
+{
+	decl
+		int temp, num;
+		str s;
+	enddecl
+
+	begin
+		num = 1;
+		while( num <= 50 ) do
+			if( ((num % 2) != 0) ) then
+				temp = exposcall ("Write", -2, num);
+			endif;
+			num = num + 1;
+		endwhile;
+		s = "odd over";
+		temp = exposcall ("Write", -2, s);
+		return 0;
+	end
+}
+
+

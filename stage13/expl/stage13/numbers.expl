@@ -1,0 +1,18 @@
+int main()
+{
+	decl
+		int temp, num;
+		str s;
+	enddecl
+
+	begin
+		num = 1;
+		while( num <= 50 ) do
+			temp = exposcall ("Write", -2, num);
+			num = num + 1;
+		endwhile;
+		s = "come back again soon";
+		temp = exposcall ("Write", -2, s);
+		return 0;
+	end
+}
