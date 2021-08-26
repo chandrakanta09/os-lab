@@ -82,8 +82,8 @@ But in theory in Kernal moe R16 to R19 should be available. Why was I not able t
 <br>
 
 
-<details open>
+<details close>
 <summary>In stage 13 we are asked to initialise the user page number of IDLE process as 82. But in stage 12 we initialised it to page number 81. Is there any particular reason to do that?</summary>
-<p><h1>ask prof</h1></p>
+<p>read properly it was already 82 only. You messed up Stack page number with user area page number</p>
 </details>
 <br>
