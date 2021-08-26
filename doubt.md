@@ -80,3 +80,10 @@ But in theory in Kernal moe R16 to R19 should be available. Why was I not able t
 <p>Yes, If you need proof go and read the library.lib file inside myexpos/expl/ directory</p>
 </details>
 <br>
+
+
+<details open>
+<summary>In stage 13 we are asked to initialise the user page number of IDLE process as 82. But in stage 12 we initialised it to page number 81. Is there any particular reason to do that?</summary>
+<p><h1>ask prof</h1></p>
+</details>
+<br>
