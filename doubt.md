@@ -81,9 +81,14 @@ But in theory in Kernal moe R16 to R19 should be available. Why was I not able t
 </details>
 <br>
 
-
 <details close>
 <summary>In stage 13 we are asked to initialise the user page number of IDLE process as 82. But in stage 12 we initialised it to page number 81. Is there any particular reason to do that?</summary>
 <p>read properly it was already 82 only. You messed up Stack page number with user area page number</p>
+</details>
+<br>
+
+<details close>
+<summary>Caution while using spl alias command</summary>
+<p> Alias is not a variable so if you modify the registers directly (for example: after restore instruction) dont use the alias name because the values would have been overrided. </p>
 </details>
 <br>
