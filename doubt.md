@@ -26,7 +26,7 @@
 	</li>
 	<li>
 		<!-- 4 -->
-		<details open>
+		<details close>
 		<summary>What is the size of one char here? (most probably 8)</summary>
 		<p>The following is only my guess. ask profressior for conformation. The xsm machine's word length is 13characters. Reason for believing the last statement is - when we try to print some big string stored in a general purpose register the string gets truncated after 13 chars. Then now in the xfs-disk the word size is 16 characters This can be seen in stage 2: understanding Filsystem, when we dump the data stored inside a file.</p>
 		</details>
