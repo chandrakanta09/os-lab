@@ -92,3 +92,9 @@ But in theory in Kernal moe R16 to R19 should be available. Why was I not able t
 <p> Alias is not a variable so if you modify the registers directly (for example: after restore instruction) dont use the alias name because the values would have been overrided. </p>
 </details>
 <br>
+
+<details close>
+<summary>Is busy looping same as polling technique?</summary>
+<p>Polling is when a process polls for lets say some data and does something in the mean time. While In busy loop the program just waits without doing anything in between checks.</p>
+</details>
+<br>
