@@ -17,7 +17,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 11: Intro to ExpL - writing my own library for write system call. This was a fun one. Tip: If you dont get something sleep over it.
  - [x] Stage 12: Made a small scheduler using timer interrupt
  - [x] Stage 13: Boot module and round robin a bit
- - [ ] Stage 14
+ - [x] Stage 14: int 10 and scheduler module
  - [ ] Stage 15
  - [ ] Stage 16
  - [ ] Stage 17
