@@ -1,9 +1,10 @@
 load --int=7 ../spl/spl_progs/stage10/sample_int7.xsm
-load --int=10 ../spl/spl_progs/int10_new.xsm
-load --int=timer ../spl/spl_progs/stage13/round_robin.xsm
+load --int=10 ../spl/spl_progs/stage14/int10.xsm
+load --int=timer ../spl/spl_progs/stage14/timer.xsm
 load --exhandler ../spl/spl_progs/exhandler_new.xsm
 load --library ../expl/library.lib
-load --module 7 ../spl/spl_progs/stage13/upd_boot_module.xsm
-load --init ../expl/samples/stage13/numbers.xsm
+load --module 7 ../spl/spl_progs/stage14/boot_module.xsm
+load --module 5 ../spl/spl_progs/stage14/scheduler_mod_5.xsm
+load --init ../expl/samples/stage14/prime.xsm
 load --idle ../expl/samples/stage12/sample_idle.xsm
-load --os ../spl/spl_progs/stage13/os_startup.xsm
+load --os ../spl/spl_progs/stage14/os_startup.xsm
