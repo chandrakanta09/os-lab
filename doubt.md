@@ -114,4 +114,11 @@
 		<p>Polling is when a process polls for lets say some data and does something in the mean time. While In busy loop the program just waits without doing anything in between checks.</p>
 		</details>
 	</li>
+	<li>
+		<!-- 15 -->
+		<details open>
+		<summary>When we use the exposcall() to call a syscall (lets say int7 is called). In int7 code we change the values of registers. So before the call is made will expl compiler save all reg values into the stack?</summary>
+		<p><b>ask</b></p>
+		</details>
+	</li>
 </ol>
