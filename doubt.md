@@ -121,4 +121,11 @@
 		<p><b>ask</b></p>
 		</details>
 	</li>
+	<li>
+		<!-- 16 -->
+		<details open>
+		<summary>Why is there a difference in interrupt number and system call number? like what is the use of keeping it differen?</summary>
+		<p><b>ask</b> My guess: we implement differnt syscalls in one interrupt's code sooooo we need different numberings.</p>
+		</details>
+	</li>
 </ol>
