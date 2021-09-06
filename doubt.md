@@ -118,7 +118,7 @@
 		<!-- 15 -->
 		<details open>
 		<summary>When we use the exposcall() to call a syscall (lets say int7 is called). In int7 code we change the values of registers. So before the call is made will expl compiler save all reg values into the stack?</summary>
-		<p><b>ask</b></p>
+		<p><b>ask</b> My guess: the compiler will handle it.</p>
 		</details>
 	</li>
 	<li>
