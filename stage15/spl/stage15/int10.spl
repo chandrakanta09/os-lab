@@ -1,0 +1,20 @@
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE+1]*16) + 4] = TERMINATED;
+//i can use alias because the current process is dead and it doesnt need the reg values
+alias bool R0;
+alias ptr R1;
+bool = 0;
+ptr = 1;
+
+while( (ptr < 16) ) do
+	if( ([PROCESS_TABLE + ptr*16 +4] == READY || [PROCESS_TABLE + ptr*16 +4] == CREATED) ) then
+		bool = 1;
+		break;
+	endif;
+	ptr = ptr + 1;
+endwhile;
+
+if( (bool == 0) ) then
+	halt;
+endif;
+
+call MOD_5;

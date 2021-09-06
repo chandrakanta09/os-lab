@@ -18,7 +18,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 12: Made a small scheduler using timer interrupt
  - [x] Stage 13: Boot module and round robin a bit
  - [x] Stage 14: int 10 and scheduler module
- - [ ] Stage 15
+ - [x] Stage 15: Terminal acqire and relase.
  - [ ] Stage 16
  - [ ] Stage 17
  - [ ] Stage 18
