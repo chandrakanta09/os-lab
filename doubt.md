@@ -128,4 +128,18 @@
 		<p>My guess: we implement differnt syscalls in one interrupt's code sooooo we need different numberings. My guess was correct.</p>
 		</details>
 	</li>
+	<li>
+		<!-- 17 -->
+		<details open>
+		<summary>To chaeck if a file is following xexe structure should we check the name of the file to contain .xexe?</summary>
+		<p>ask</p>
+		</details>
+	</li>
+	<li>
+		<!-- 18 -->
+		<details close>
+		<summary>Dot memorize function numbers - go check <a href="https://exposnitc.github.io/support_tools-files/constants.html">SPL constants</a></summary>
+		<p>Just a pointer that i found very late</p>
+		</details>
+	</li>
 </ol>
