@@ -19,7 +19,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 13: Boot module and round robin a bit
  - [x] Stage 14: int 10 and scheduler module
  - [x] Stage 15: Terminal acqire and relase.
- - [ ] Stage 16
+ - [x] Stage 16: Terminal read
  - [ ] Stage 17
  - [ ] Stage 18
  - [ ] Stage 19
