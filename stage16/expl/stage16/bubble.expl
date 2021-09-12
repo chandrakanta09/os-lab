@@ -1,0 +1,41 @@
+decl
+	int n;
+	int a[100];
+	int i, j;
+	int tmp, swp;
+	int maxelem;
+enddecl
+
+int main()
+{
+	begin
+		n = 0;
+		tmp = exposcall("Read", -1, n);
+		i = 0;
+		while( (i < n) ) do
+			tmp = exposcall("Read", -1, a[i]);
+			i = i+1;
+		endwhile;
+
+		i = 0;
+		while( (i < n) ) do
+			j = 0;
+			while( (j < (n-i-1)) ) do
+				if( (a[j] > a[(j+1)]) ) then
+					swp = a[j];
+					a[j] = a[(j+1)];
+					a[(j+1)] = swp;
+				endif;
+				j = j + 1;
+			endwhile;
+			i = i + 1;
+		endwhile;
+
+		i = 0;
+		while( (i < n) ) do
+			tmp = exposcall("Write", -2, a[i]);
+			i = i + 1;
+		endwhile;
+		return 0;
+	end
+}
