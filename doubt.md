@@ -33,9 +33,9 @@
 	</li>
 	<li>
 		<!-- 5 -->
-		<details open>
+		<details close>
 		<summary>In stage 1: its written one word is 16 characters long. But in stage 3 one string can only hold 13 characters. Why?</summary>
-		<p><b>ask prof</b></p>
+		<p>Both values are 16 only. But when we implement them we have to use \n and \0 and other stuff to handle string that's why size of stirng appears to be 13 when we execute code</p>
 		</details>
 	</li>
 	<li>
@@ -66,17 +66,17 @@
 	</li>
 	<li>
 		<!-- 8 -->
-		<details open>
+		<details close>
 		<summary> What is the use of Base pointer (BP) ? </summary>
-		<p><b>ask</b></p>
+		<p>Base pointer is used for storing the retur addres when we call a function from another function. Not completely conviced with this. Do more research.</p>
 		</details>
 	</li>
 	<li>
 		<!-- 9 -->
-		<details open>
+		<details close>
 		<summary>In stage 9 while modifying the timer interrup code. I was not able to use R16 to R19 registes.
 		But in theory in Kernal moe R16 to R19 should be available. Why was I not able to use them?</summary>
-		<p><b>ask</b></p>
+		<p>R16 to R19 are reserved for compiler to convert code form spl to assembly.<a href="https://exposnitc.github.io/support_tools-files/spl.html">go to registers and ports in the doccumentation</a></p>
 		</details>
 	</li>
 	<li>
@@ -116,16 +116,16 @@
 	</li>
 	<li>
 		<!-- 15 -->
-		<details open>
+		<details close>
 		<summary>When we use the exposcall() to call a syscall (lets say int7 is called). In int7 code we change the values of registers. So before the call is made will expl compiler save all reg values into the stack?</summary>
-		<p><b>ask</b> My guess: the compiler will handle it.</p>
+		<p>My guess: the expl compiler will handle it.</p>
 		</details>
 	</li>
 	<li>
 		<!-- 16 -->
-		<details open>
+		<details close>
 		<summary>Why is there a difference in interrupt number and system call number? like what is the use of keeping it differen?</summary>
-		<p><b>ask</b> My guess: we implement differnt syscalls in one interrupt's code sooooo we need different numberings.</p>
+		<p>My guess: we implement differnt syscalls in one interrupt's code sooooo we need different numberings. My guess was correct.</p>
 		</details>
 	</li>
 </ol>
