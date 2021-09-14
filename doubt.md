@@ -130,9 +130,9 @@
 	</li>
 	<li>
 		<!-- 17 -->
-		<details open>
+		<details close>
 		<summary>To chaeck if a file is following xexe structure should we check the name of the file to contain .xexe?</summary>
-		<p>ask</p>
+		<p>There will be a inode table entry which tells that data</p>
 		</details>
 	</li>
 	<li>
@@ -140,6 +140,27 @@
 		<details close>
 		<summary>Dot memorize function numbers - go check <a href="https://exposnitc.github.io/support_tools-files/constants.html">SPL constants</a></summary>
 		<p>Just a pointer that i found very late</p>
+		</details>
+	</li>
+	<li>
+		<!-- 19 -->
+		<details close>
+		<summary>Should we copy in the inode table from disk to memory or will it be handled internally?</summary>
+		<p>We have to copy it manually. But idk where its mentioned in the stage 17 doc. My bad its there in Modifications to Boot Module point 1.</p>
+		</details>
+	</li>
+	<li>
+		<!-- 20 -->
+		<details close>
+		<summary>For exception handler and int10 instead of using basic halt statement. do a pring statemnt also so it will be easy to debug in initial stages.</summary>
+		<p>Bonus points :)<p>
+		</details>
+	</li>
+	<li>
+		<!-- 21 -->
+		<details close>
+		<summary>This is a point related to Point 5: Why are strings size 13 in xos ... I just saw A nice message in the xos google group. Just check it out <a href=https://groups.google.com/g/xos-users/c/BCbwiQIhTSE/m/-wtEKYMMCQAJ>here</a></summary>
+		<p>Bonus points :)<p>
 		</details>
 	</li>
 </ol>
