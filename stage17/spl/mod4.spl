@@ -1,0 +1,49 @@
+alias functionNum R1;
+alias currentPID R2;
+
+if( (functionNum == 3) ) then
+	//terminal acquire
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+	functionNum = 8;
+	currentPID = [PROCESS_TABLE +[SYSTEM_STATUS_TABLE+1]*16 + 1];
+	call MOD_0;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+
+	print R3;
+
+	//terminal release
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+	functionNum = 9;
+	currentPID = [PROCESS_TABLE +[SYSTEM_STATUS_TABLE+1]*16 + 1];
+	call MOD_0;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+	//save the return value if needed
+	return;
+else
+	if( (functionNum == 4) ) then
+		//terminal acquire
+		multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+		functionNum = 8;
+		currentPID = [SYSTEM_STATUS_TABLE+1];
+		call MOD_0;
+		multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+
+		read;
+
+		[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 4] = WAIT_TERMINAL;
+		multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+		call MOD_5;
+		multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+
+		alias wordLogicalAdd R3;
+		alias PhyAdd R4;
+		PhyAdd = ([PTBR + (2 * (wordLogicalAdd/512))] * 512) + (wordLogicalAdd%512);
+		wordLogicalAdd = [PhyAdd];
+		PhyAdd = ([PTBR + (2 * (wordLogicalAdd/512))] * 512) + (wordLogicalAdd%512);
+
+		[PhyAdd] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 8];
+		return;
+	else
+		return;
+	endif;
+endif;

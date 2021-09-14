@@ -1,0 +1,13 @@
+int main()
+{
+	decl
+		str s;
+		int tmp;
+	enddecl
+	begin
+		s = "exec Try out";
+		tmp = exposcall("Write", -2, s);
+		tmp = exposcall("Exec", "even.xsm");
+		return 0;
+	end
+}

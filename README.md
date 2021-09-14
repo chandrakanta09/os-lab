@@ -20,7 +20,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 14: int 10 and scheduler module
  - [x] Stage 15: Terminal acqire and relase.
  - [x] Stage 16: Terminal read
- - [ ] Stage 17
+ - [x] Stage 17: SHELL Mark 1 (wowowowowowo!!!)
  - [ ] Stage 18
  - [ ] Stage 19
  - [ ] Stage 20
