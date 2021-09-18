@@ -1,0 +1,32 @@
+[yoda@ xsm ]$ ./xsm --debug
+shellmk1 $
+even.xsm
+Previous instruction at IP = 3072: BRKP
+Mode: KERNEL     PID: 0
+Next instruction at IP = 3074, Page No. = 6: MOV R16,28672
+debug> dst
+Status: 1
+Load/Store Bit: 0
+Page Number: 83
+Block Number: 69
+PID: 1
+debug> c
+Previous instruction at IP = 3188: BRKP
+Mode: KERNEL     PID: 0
+Next instruction at IP = 3190, Page No. = 6: IRET
+debug> dst
+Status: 0
+Load/Store Bit: 0
+Page Number: 83
+Block Number: 69
+PID: 1
+debug> c
+2
+4
+6
+8
+10
+int10Terminte
+Machine is halting.
+[yoda@ xsm ]$
+

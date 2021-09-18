@@ -1,0 +1,164 @@
+//1. save user stack
+alias userSP R0;
+userSP = SP;
+
+//1.2 setup kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 11]*512 - 1;
+//--------------------------------------------------------------
+
+//2. set MODE flag
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 9;
+//--------------------------------------------------------------
+
+//3. get file name form userSP - 4 <- arg1
+alias file_name_add R1;
+alias file_name R2;
+file_name_add = ( [PTBR + 2*((userSP-4)/512)]*512 ) + (userSP-4)%512;
+file_name = [file_name_add];
+//--------------------------------------------------------------
+
+//4. search in inode table
+alias found R3; //found = 0 if not got
+found = 0;
+alias inode_index R4;
+inode_index = 0;
+while( (inode_index < MAX_FILE_NUM) ) do
+	if(( ([INODE_TABLE + inode_index*16 + 1] == file_name) && ([INODE_TABLE + inode_index*16 + 0] == EXEC) )) then
+		found = 1;
+		break;
+	endif;
+	inode_index = inode_index + 1;
+endwhile;
+
+if( (found == 0) ) then
+	//failure
+	alias retAdd R5;
+	retAdd = ( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512;
+	[retAdd] = -1;
+	SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13];
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 0;
+	ireturn;
+endif;
+//--------------------------------------------------------------
+
+// following code for success case in finding the file in inode table
+//5. inode index saved as part of (4)
+//--------------------------------------------------------------
+
+//6. Call exit process (fun=3) in process manager mod 1
+//deallocate the resourses and pages of the current process
+multipush(R0, R1, R2, R3, R4, R5);
+R1 = EXIT_PROCESS;
+R2 = [SYSTEM_STATUS_TABLE+1];
+call MOD_1;
+multipop(R0, R1, R2, R3, R4, R5);
+//--------------------------------------------------------------
+
+//7. get User area page from process tabel fo current processs.
+// - (memory_free_list_entry++)
+// - (mem_free_count--) in sys_status_table
+//why is the same mem location reclamed? guess: to avoid overhead no other pointing comming since return address of new process has no relation to kernel stack
+//actual reason: we need a active kernel stack to call get Free page module
+alias userAreaPage R6;
+userAreaPage = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 11];
+[MEMORY_FREE_LIST + userAreaPage] = [MEMORY_FREE_LIST + userAreaPage] + 1;
+[SYSTEM_STATUS_TABLE+2] = [SYSTEM_STATUS_TABLE+2] - 1;
+//--------------------------------------------------------------
+
+//8. Initialize kernel stack of new process
+SP = userAreaPage*512 - 1;
+//--------------------------------------------------------------
+
+//initialise per process resource table
+R7 = 496;
+while( (R7 < 512) ) do
+	[userAreaPage*512 + R7] = -1;
+	R7 = R7 + 1;
+endwhile;
+
+//9. update state to running and store inode index in process table
+//doubt: where did we set current process state as terminated.
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 4] = RUNNING;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 7] = inode_index;
+//--------------------------------------------------------------
+
+//10. allocate new page and set page table entries. Get Free Page function
+//(i) lib
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+//(ii) heap
+multipush(R0, R1, R2, R3, R4, R5, R6);
+R1 = GET_FREE_PAGE;
+call MOD_2;
+[PTBR+4] = R0;
+[PTBR+5] = "0110";
+multipop(R0, R1, R2, R3, R4, R5, R6);
+
+multipush(R0, R1, R2, R3, R4, R5, R6);
+R1 = GET_FREE_PAGE;
+call MOD_2;
+[PTBR+6] = R0;
+[PTBR+7] = "0110";
+multipop(R0, R1, R2, R3, R4, R5, R6);
+
+//(ii) stack
+multipush(R0, R1, R2, R3, R4, R5, R6);
+R1 = GET_FREE_PAGE;
+call MOD_2;
+[PTBR+16] = R0;
+[PTBR+17] = "0110";
+multipop(R0, R1, R2, R3, R4, R5, R6);
+
+multipush(R0, R1, R2, R3, R4, R5, R6);
+R1 = GET_FREE_PAGE;
+call MOD_2;
+[PTBR+18] = R0;
+[PTBR+19] = "0110";
+multipop(R0, R1, R2, R3, R4, R5, R6);
+
+//(iii) code
+R6 = 0;
+while( (R6 <= ([INODE_TABLE+ inode_index*16 + 2]/512)) ) do
+	multipush(R0, R1, R2, R3, R4, R5, R6);
+	R1 = GET_FREE_PAGE;
+	call MOD_2;
+	R7 = R0;
+	multipop(R0, R1, R2, R3, R4, R5, R6);
+	[PTBR+8+(R6*2)] = R7;
+	[PTBR+8+(R6*2)+1] = "0100";
+	R6 = R6 + 1;
+endwhile;
+//doubt? shouldnt we alter mem_free_list and mem_free_count after setting these page tables?
+//guess: we will handle in GET_FREE_PAGE fun
+//--------------------------------------------------------------
+
+//11. load the code blocks from disk to memory.
+R7 = 8;
+while (( ([INODE_TABLE+ inode_index*16 + R7] != -1) && (R7 < 12) )) do
+	multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8);
+	R1 = DISK_LOAD;
+	R2 = [SYSTEM_STATUS_TABLE+1];
+	R3 = [(PTBR+8+(R7-8)*2)];
+	R4 = [INODE_TABLE + inode_index*16 + R7];
+	call MOD_4;
+	multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8);
+	R7 = R7 + 1;
+endwhile;
+//--------------------------------------------------------------
+
+//12. Store the entry IP value
+//R15 = [PTBR+16];
+//R14 = [PTBR+8];
+//R13 = [ ( ([PTBR+8])*512 ) + 1 ];
+[ [PTBR+16]*512 ] = [ ( ([PTBR+8])*512 ) + 1 ];
+//--------------------------------------------------------------
+
+//13. Change SP to user stack and MODE Flag
+SP = 8*512;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 0;
+ireturn;
+

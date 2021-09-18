@@ -1,0 +1,42 @@
+alias functionNum R1;
+alias memFreed R2;
+
+if( (functionNum == GET_FREE_PAGE) ) then
+	[SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
+	while( ([SYSTEM_STATUS_TABLE + 2] == 0) ) do
+		[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 4] = WAIT_MEM;
+		call MOD_5; //context switching
+	endwhile;
+	[SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1; //wait mem count
+	[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1; //mem free count
+	//(iv) fina a free page from mem free list
+	alias i R0;
+	i = 76;
+	while( (i <= 127) ) do
+		if( ([MEMORY_FREE_LIST + i] == 0) ) then
+			R0 = i;
+			[MEMORY_FREE_LIST + i] = 1;
+			break;
+		endif;
+		i = i + 1;
+	endwhile;
+	return;
+endif;
+
+if( (functionNum == RELEASE_PAGE) ) then
+	[MEMORY_FREE_LIST + memFreed] = [MEMORY_FREE_LIST + memFreed] - 1;
+	if( ([MEMORY_FREE_LIST + memFreed] == 0) ) then
+		[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] + 1;
+		alias j R4;
+		j = 0;
+		while( (j < MAX_PROC_NUM) ) do
+			if( ([PROCESS_TABLE + j*16 + 4] == WAIT_MEM) ) then
+				[PROCESS_TABLE + j*16 + 4] = READY;
+			endif;
+			j = j + 1;
+		endwhile;
+	endif;
+	return;
+endif;
+
+return;

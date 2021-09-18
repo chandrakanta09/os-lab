@@ -1,0 +1,42 @@
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 7; // read sys call
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13] = SP; // backing up user stack
+
+alias userSP R0;
+userSP = SP;
+
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 11]*512 - 1;
+
+alias fileDescriptorAdd R1;
+alias fileDescriptor R2; //at logical pos: (userSP-4)
+//'userSP - 4' is the logical address
+fileDescriptorAdd =( [ PTBR + ( 2*((userSP-4)/512) ) ]*512 ) + ( (userSP-4)%512 );
+fileDescriptor = [fileDescriptorAdd];
+
+if ( (fileDescriptor != -1) ) then
+	alias returnAdd R3;
+	returnAdd = ( [PTBR + ( 2*((userSP-1)/512) ) ]*512 ) + ( (userSP-1) % 512 );
+	[returnAdd] = -1;
+
+else
+	alias wordLogicAdd R4;
+	wordLogicAdd = (userSP - 3);
+	multipush(R0, R1, R2, R3, R4, R5);
+	//now we have to setup registers to call the module
+	//R0 <- return value
+	//R1 <- fun number = 4 (terminal read)
+	//R2 <- pid
+	//R3 <- wordLogicAdd
+	R3 = wordLogicAdd;
+	R2 = [SYSTEM_STATUS_TABLE + 1];
+	R1 = 4;
+	call MOD_4;
+	multipush(R0, R1, R2, R3, R4, R5);
+	alias retadd_for_syscall R6;
+	retadd_for_syscall = ( [PTBR + ( 2*((userSP-1)/512) ) ]*512 ) + ( (userSP-1) % 512 );
+	[retadd_for_syscall] = 0; // returning success
+endif;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 0; // modflag reset
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13];
+
+ireturn;

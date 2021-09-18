@@ -1,0 +1,15 @@
+int main()
+{
+	decl
+		str s;
+		int tmp;
+	enddecl
+	begin
+		s = "shellmk1 $";
+		tmp = exposcall("Write", -2, s);
+		tmp = exposcall("Read", -1, s);
+		tmp = exposcall("Exec", s);
+		return 0;
+	end
+}
+
