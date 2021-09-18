@@ -21,7 +21,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 15: Terminal acqire and relase.
  - [x] Stage 16: Terminal read
  - [x] Stage 17: SHELL Mark 1 (wowowowowowo!!!)
- - [ ] Stage 18
+ - [x] Stage 18: load instruction: with disk interrupt
  - [ ] Stage 19
  - [ ] Stage 20
  - [ ] Stage 21
