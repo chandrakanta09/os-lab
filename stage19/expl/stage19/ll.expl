@@ -1,0 +1,45 @@
+type
+	list
+	{
+		int data;
+		list next;
+	}
+endtype
+
+int main()
+{
+	decl
+		int n, tmp;
+		int num;
+		int i;
+		list head, ptr;
+	enddecl
+	begin
+		tmp = exposcall("Write", -2, "hi_there");
+		tmp = initialize();
+		tmp = exposcall("Write", -2, "hi_there");
+		tmp = exposcall("Read", -1, n);
+		i = 0;
+		while( (i < n) ) do
+			tmp = exposcall("Read", -1, num);
+			ptr = alloc();
+			ptr.data = num;
+			ptr.next = null;
+			if( (head == null) ) then
+				head = ptr;
+			else
+				ptr.next = head;
+				head = ptr;
+			endif;
+			i = i + 1;
+		endwhile;
+		ptr = head;
+		i = 0;
+		while( (i < n) ) do
+			tmp = exposcall("Write", -2, ptr.data);
+			ptr = ptr.next;
+			i = i + 1;
+		endwhile;
+		return 0;
+	end
+}

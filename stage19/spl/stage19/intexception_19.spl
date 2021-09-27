@@ -1,0 +1,74 @@
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = -1; //mod flag = -1;
+
+//switch to kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 11]*512 - 1;
+
+backup;
+multipush(EIP);
+
+if(( (EC != 0) || ([PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13] == (PTLR*512-1)) )) then
+	print "EC";
+	print EC;
+	print "StackOverflow";
+	breakpoint;
+	//invoke exit process function
+	multipush(R0, R1, R2, R3, R4); // why am i backing up we are dong exit yea
+	R1 = EXIT_PROCESS;
+	R2 = [SYSTEM_STATUS_TABLE+1];
+	call MOD_1;
+	multipop(R0, R1, R2, R3, R4);
+	call MOD_5;
+endif;
+
+//if we reach here this means exception happend
+//due to PAGE FAULT
+//check if code page is the cause
+if(( (EPN >= 4) && (EPN <= 7) )) then
+	//code block that we need = [DISK_MAP_TABLE+EPN]
+	R10 = 0;
+	multipush(R0, R1, R2, R3, R4, R5);
+	R1 = GET_CODE_PAGE;
+	R2 = [DISK_MAP_TABLE+(10*[SYSTEM_STATUS_TABLE+1])+EPN];
+	breakpoint;
+	call MOD_2;
+	//R0 will have the mem page nubmer
+	R10 = R0; // saving it in R10
+	multipop(R0, R1, R2, R3, R4, R5);
+	//update the page table entry of current process
+	[PTBR + EPN*2] = R10;
+	[PTBR + EPN*2+1] = "1100";
+	breakpoint;
+endif;
+
+//check if heap page is the cause
+if(( (EPN >= 2) && (EPN <= 3) )) then
+	//get 2 mem pages for heap
+	multipush(R0, R1, R2, R3, R4, R5, R6);
+	R1 = GET_FREE_PAGE;
+	call MOD_2;
+	//R0 will have the free page
+	R10 = R0;
+	multipop(R0, R1, R2, R3, R4, R5, R6);
+	[PTBR + 2*2] = R10;
+	[PTBR + 2*2 + 1] = "1110";
+
+	multipush(R0, R1, R2, R3, R4, R5, R6);
+	R1 = GET_FREE_PAGE;
+	call MOD_2;
+	//R0 will have the free page
+	R10 = R0;
+	multipop(R0, R1, R2, R3, R4, R5, R6);
+	[PTBR + 3*2] = R10;
+	[PTBR + 3*2 + 1] = "1110";
+endif;
+
+//reset the mod flag to 0
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 0;
+multipop(EIP);
+restore;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13];
+SP = SP + 1;
+[[PTBR + (SP/512)*2]*512 + (SP%512)] = EIP;
+breakpoint;
+ireturn;

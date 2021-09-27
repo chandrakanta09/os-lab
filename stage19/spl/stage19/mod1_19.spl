@@ -1,0 +1,92 @@
+//Process Manager module
+alias functionNum R1;
+alias PID R2;
+
+if( (functionNum == FREE_USER_AREA_PAGE) ) then
+	alias userAreaPage R2;
+	userAreaPage = [PROCESS_TABLE + PID*16 + 11];
+	//call release page function
+	multipush(R1, R2, R3, R4);
+	R1 = RELEASE_PAGE;
+	R2 = userAreaPage;
+	call MOD_2;
+	multipop(R1, R2, R3, R4);
+	return;
+endif;
+
+if( (functionNum == EXIT_PROCESS) ) then
+	//call Free page table
+	multipush(R1, R2, R3, R4);
+	R1 = FREE_PAGE_TABLE;
+	R2 = PID;
+	call MOD_1;
+	multipop(R1, R2, R3, R4);
+	multipush(R1, R2, R3, R4);
+	R1 = FREE_USER_AREA_PAGE;
+	R2 = PID;
+	call MOD_1;
+	multipop(R1, R2, R3, R4);
+	[PROCESS_TABLE + PID*16 + 4] = TERMINATED;
+	return;
+endif;
+
+if( (functionNum == FREE_PAGE_TABLE) ) then
+	alias ptbr_current_pid R4;
+	ptbr_current_pid = [PROCESS_TABLE + PID*16 + 14];
+	//0 to 1 is lib
+	R5 = 0;
+	while( (R5 <= 1) ) do
+		//lib is shared so just invalidate them dont release
+		[ptbr_current_pid + R5*2] = -1;
+		[ptbr_current_pid + R5*2 + 1] = "0000";
+		R5 = R5+1;
+	endwhile;
+	//2 to 9 is rest of the page table entries
+	R5 = 2;
+	while( (R5 <= 9) ) do
+		if( ([ptbr_current_pid + R5*2] != -1) ) then
+			//call release page
+			multipush(R1, R2, R3, R4, R5);
+			R1 = RELEASE_PAGE;
+			R2 = [ptbr_current_pid + R5*2];
+			call MOD_2;
+			multipop(R1, R2, R3, R4, R5);
+		endif;
+		[ptbr_current_pid + R5*2] = -1;
+		[ptbr_current_pid + R5*2 + 1] = "0000";
+		R5 = R5+1;
+	endwhile;
+	
+	//loop through the disk_map_table
+	//2 to 3 is heap
+	R5 = 2;
+	while( (R5 <= 3) ) do
+		if( ([DISK_MAP_TABLE + 10*PID + R5] != -1) ) then
+			multipush(R1, R2, R3, R4, R5, R6);
+			R1 = RELEASE_BLOCK;
+			R3 = PID;
+			R2 = [DISK_MAP_TABLE + 10*PID + R5];
+			call MOD_2;
+			multipop(R1, R2, R3, R4, R5, R6);
+		endif;
+		[DISK_MAP_TABLE + 10*PID + R5] = -1;
+		R5 = R5 + 1;
+	endwhile;
+	//8 to 9 is stack
+	R5 = 8;
+	while( (R5 <= 9) ) do
+		if( ([DISK_MAP_TABLE + 10*PID + R5] != -1) ) then
+			multipush(R1, R2, R3, R4, R5, R6);
+			R1 = RELEASE_BLOCK;
+			R3 = PID;
+			R2 = [DISK_MAP_TABLE + 10*PID + R5];
+			call MOD_2;
+			multipop(R1, R2, R3, R4, R5, R6);
+		endif;
+		[DISK_MAP_TABLE + 10*PID + R5] = -1;
+		R5 = R5 + 1;
+	endwhile;
+	return;
+endif;
+
+return;

@@ -1,0 +1,101 @@
+//Memory Manager Module
+alias functionNum R1;
+alias memFreed R2;
+
+if( (functionNum == GET_FREE_PAGE) ) then
+	[SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
+	while( ([SYSTEM_STATUS_TABLE + 2] == 0) ) do
+		[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 4] = WAIT_MEM;
+		call MOD_5; //context switching
+	endwhile;
+	[SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1; //wait mem count
+	[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1; //mem free count
+	//(iv) fina a free page from mem free list
+	alias i R0;
+	i = 76;
+	while( (i <= 127) ) do
+		if( ([MEMORY_FREE_LIST + i] == 0) ) then
+			R0 = i;
+			[MEMORY_FREE_LIST + i] = 1;
+			break;
+		endif;
+		i = i + 1;
+	endwhile;
+	return;
+endif;
+
+if( (functionNum == RELEASE_PAGE) ) then
+	[MEMORY_FREE_LIST + memFreed] = [MEMORY_FREE_LIST + memFreed] - 1;
+	if( ([MEMORY_FREE_LIST + memFreed] == 0) ) then
+		[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] + 1;
+		alias j R4;
+		j = 0;
+		while( (j < MAX_PROC_NUM) ) do
+			if( ([PROCESS_TABLE + j*16 + 4] == WAIT_MEM) ) then
+				[PROCESS_TABLE + j*16 + 4] = READY;
+			endif;
+			j = j + 1;
+		endwhile;
+	endif;
+	return;
+endif;
+
+if( (functionNum == GET_CODE_PAGE) ) then
+	alias block_num R2;
+	//we return mem page number
+	alias pid R4;
+	pid = 0;
+	while( (pid < MAX_PROC_NUM) ) do
+		alias codeSegment R5;
+		codeSegment = 4;
+		while( (codeSegment <= 7) ) do
+			if( ([DISK_MAP_TABLE + pid*10 + codeSegment] == block_num) ) then
+				//now we have to check if the process with pid
+				//loaded it to the code area of that process.
+				alias page_table_base R6;
+				page_table_base = [PROCESS_TABLE + pid*16 + 14];
+				if( ([page_table_base+codeSegment*2] != -1) && ([page_table_base+codeSegment*2+1] == "0100") || ([page_table_base+codeSegment*2+1] == "1100") ) then
+					//im in here means the code segment is valid
+					//we can use this for our current process
+					R0 = [page_table_base+codeSegment*2];
+					[MEMORY_FREE_LIST + R0] = [MEMORY_FREE_LIST + R0] + 1;
+					return;
+				endif;
+			endif;
+			codeSegment = codeSegment + 1;
+		endwhile;
+		pid = pid + 1;
+	endwhile;
+	//we reached here means the code page was not found in any
+	//of the running process.
+	//Invoke the Get Free Page from mod 2 memory manager
+	multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9);
+	R1 = GET_FREE_PAGE;
+	call MOD_2; //mem manager
+	//r0 contain the free page that we will be using
+	R10 = R0;
+	R11 = R0;
+	multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9);
+	R0 = R10;
+
+	//now we have to load the code from disk to the free page we got
+	//Disk load function of device manager module MOD_4
+	multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10);
+	R1 = DISK_LOAD;
+	R4 = block_num;
+	R2 = [SYSTEM_STATUS_TABLE+1];
+	R3 = R10;
+	call MOD_4;
+	multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10);
+	R0 = R10;
+	return;
+endif;
+
+if( (functionNum == RELEASE_BLOCK) ) then
+	alias BlockNumber R2;
+	alias PID R3;
+	[DISK_FREE_LIST + BlockNumber] = 0;
+	return;
+endif;
+
+return;
