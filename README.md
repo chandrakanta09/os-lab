@@ -199,4 +199,18 @@ OS Lab - National Institute of Technology, Calicut
 		<p>Bonus points :)<p>
 		</details>
 	</li>
+	<li>
+		<!-- 22 -->
+		<details open>
+		<summary>In Disk map table discritpiton is a bit wrong</summary>
+		<p>ask sir<p>
+		</details>
+	</li>
+	<li>
+		<!-- 23 -->
+		<details open>
+		<summary>How to check if the page table entry is valid or not - in spl we cant reference a single character</summary>
+		<p>ask sir<p>
+		</details>
+	</li>
 </ol>
