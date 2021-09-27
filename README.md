@@ -22,7 +22,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 16: Terminal read
  - [x] Stage 17: SHELL Mark 1 (wowowowowowo!!!)
  - [x] Stage 18: load instruction: with disk interrupt
- - [ ] Stage 19
+ - [x] Stage 19: Exception handler: a lot of debug time for me
  - [ ] Stage 20
  - [ ] Stage 21
  - [ ] Stage 22
