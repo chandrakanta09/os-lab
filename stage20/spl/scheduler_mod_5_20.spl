@@ -1,0 +1,64 @@
+alias currentPID R0;
+currentPID = [SYSTEM_STATUS_TABLE+1];
+
+multipush(BP);
+
+alias process_table_entry R1;
+process_table_entry = PROCESS_TABLE + currentPID*16;
+
+[process_table_entry + 12] = SP % 512;
+[process_table_entry + 14] = PTBR;
+[process_table_entry + 15] = PTLR;
+
+//round robin begin
+alias newPID R2;
+alias bool R3;
+bool = 0;
+
+if( (bool == 0) ) then
+	newPID = currentPID+1;
+	while( (newPID < 16) ) do
+		if( ([PROCESS_TABLE + newPID*16 +4] == READY || [PROCESS_TABLE + newPID*16 +4] == CREATED) ) then
+			bool = 1;
+			break;
+		endif;
+		newPID = newPID+1;
+	endwhile;
+endif;
+//nature loves symmetry
+if( (bool == 0) ) then
+	newPID = 1;
+	while( (newPID <= currentPID) ) do
+		if( ([PROCESS_TABLE + newPID*16 +4] == READY || [PROCESS_TABLE + newPID*16 +4] == CREATED) ) then
+			bool = 1;
+			break;
+		endif;
+		newPID = newPID+1;
+	endwhile;
+endif;
+
+if( (bool == 0) ) then
+	newPID = 0; //setting to idle code
+endif;
+//round robin end
+//newPID will have the pid of the new process
+
+process_table_entry = PROCESS_TABLE + newPID*16;
+SP = [process_table_entry + 11]*512 + [process_table_entry + 12];
+PTBR = [process_table_entry + 14];
+PTLR = [process_table_entry + 15];
+
+[SYSTEM_STATUS_TABLE + 1] = newPID;
+
+if( ([process_table_entry + 4] == CREATED) ) then
+	BP = [[process_table_entry + 12]*512];
+	SP = [process_table_entry + 13];
+	[process_table_entry + 4] = RUNNING;
+	[process_table_entry + 9] = 0;
+	ireturn;
+endif;
+
+[process_table_entry + 4] = RUNNING;
+multipop(BP);
+return;
+
