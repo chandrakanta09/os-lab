@@ -23,7 +23,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 17: SHELL Mark 1 (wowowowowowo!!!)
  - [x] Stage 18: load instruction: with disk interrupt
  - [x] Stage 19: Exception handler: a lot of debug time for me
- - [ ] Stage 20
+ - [x] Stage 20: Fork sys call: it was nice had to debug a lot due to a stupid careless mistage in int 10 code
  - [ ] Stage 21
  - [ ] Stage 22
  - [ ] Stage 23
