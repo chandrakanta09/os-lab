@@ -1,0 +1,79 @@
+//int11 -> Wait, Signal, Getpid, Getppid
+alias userSP R0;
+userSP = SP;
+
+//extract the sys call number
+alias sysCallNum R1;
+sysCallNum = [ ( [PTBR + 2*((userSP-5)/512)]*512 ) + (userSP-5)%512 ];
+
+//switch to kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 11]*512 - 1;
+
+//Getpid
+if( (sysCallNum == 11) ) then
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = sysCallNum;
+	[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = [SYSTEM_STATUS_TABLE+1];
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 0;
+	SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13];
+	ireturn;
+endif;
+
+//Getppid
+if( (sysCallNum == 12) ) then
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = sysCallNum;
+	[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 2];
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 0;
+	SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13];
+	ireturn;
+endif;
+
+//Wait
+if( (sysCallNum == 13) ) then
+	//change mode flag
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = sysCallNum;
+	//extract PID from the user stack
+	alias pid R2;
+	pid = [ ( [PTBR + 2*((userSP-4)/512)]*512 ) + (userSP-4)%512 ];
+	//valid range is 1 - 15 yea?
+	//we cant keep 0 as a condition since its a infinite loop?
+	if( ((pid == [SYSTEM_STATUS_TABLE+1]) || ([PROCESS_TABLE + pid*16 + 4] == TERMINATED) || (pid < 1) || (pid >= MAX_PROC_NUM))) then
+		//failure
+		[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = -1;
+		[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 0;
+		SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13];
+		ireturn;
+	endif;
+	//success
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 4] = WAIT_PROCESS;
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 5] = pid;
+	//call scheduler
+	multipush(R0, R1, R2, R3);
+	call MOD_5;
+	multipop(R0, R1, R2, R3);
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 0;
+	[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = 0;
+	SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13];
+	ireturn;
+endif;
+
+//Signal
+if( (sysCallNum == 14) ) then
+	//Set mode flag to 14
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = sysCallNum;
+	alias i R3;
+	i = 1;
+	while( (i < MAX_PROC_NUM) ) do
+		if(( ([PROCESS_TABLE + i*16 + 4] == WAIT_PROCESS) && ([PROCESS_TABLE + i*16 + 5] == [SYSTEM_STATUS_TABLE+1]) )) then
+			[PROCESS_TABLE + i*16 + 4] = READY;
+		endif;
+		i = i + 1;
+	endwhile;
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 9] = 0;
+	[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = 0;
+	SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 13];
+	ireturn;
+endif;
+
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13];
+ireturn;

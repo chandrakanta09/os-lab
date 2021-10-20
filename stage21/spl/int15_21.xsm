@@ -1,0 +1,5 @@
+MOV R16, "Shutdown"
+PORT P1, R16
+OUT
+HALT
+HALT
