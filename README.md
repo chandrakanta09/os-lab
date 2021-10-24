@@ -25,7 +25,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 19: Exception handler: a lot of debug time for me
  - [x] Stage 20: Fork sys call: it was nice had to debug a lot due to a stupid careless mistage in int 10 code
  - [x] Stage 21: Wait, signal, get pid, get ppid - a lot of debug time man. silly ass error.
- - [x] Stage 22: Semaphores - Stuffs are almost working - but assg3 question concurrent exectcution has some bug need to fix it.
+ - [x] Stage 22: Semaphores - Bug less code is uploaded
  - [ ] Stage 23
  - [ ] Stage 24
  - [ ] Stage 25
