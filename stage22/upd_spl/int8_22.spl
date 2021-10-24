@@ -1,0 +1,190 @@
+//Fork system call
+alias userSP R1;
+userSP = SP;
+
+alias parentProcessTable R4;
+parentProcessTable = PROCESS_TABLE + 16*[SYSTEM_STATUS_TABLE+1];
+
+//MODE FLAG = sys call number = 8
+//[PROCESS_TABLE + 16*[SYSTEM_STATUS_TABLE+1] + 9] = 8;
+[parentProcessTable + 9] = 8;
+
+//switch to kernel stack
+[parentProcessTable + 13] = SP;
+SP = [parentProcessTable + 11]*512 -1;
+
+//call Get Pcb Entry from process manager module
+multipush(R0, R1, R2, R3, R4);
+R1 = GET_PCB_ENTRY;
+call MOD_1;
+//R0 will have the childs PID;
+R10 = R0;
+multipop(R0, R1, R2, R3, R4);
+R0 = R10;
+alias childPID R0;
+if( (childPID == -1) ) then
+	breakpoint;
+	alias ret R2;
+	ret = ( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512;
+	[ret] = -1;
+	[parentProcessTable + 9] = 0;
+	SP = [parentProcessTable + 13];
+	ireturn;
+endif;
+
+//you are here means we have space for a child process entry in PCB(Process table)
+
+//Check if heap is present or not
+if( ([PTBR + 4] == -1) ) then
+	//call get free page to get the heap pages
+	multipush(R0, R1, R2, R3, R4, R5);
+	R1 = GET_FREE_PAGE;
+	call MOD_2;
+	//R0 will have the free page number
+	R10 = R0;
+	multipop(R0, R1, R2, R3, R4, R5);
+	[PTBR + 4] = R10;
+	[PTBR + 5] = "0110";
+
+	multipush(R0, R1, R2, R3, R4, R5);
+	R1 = GET_FREE_PAGE;
+	call MOD_2;
+	R10 = R0;
+	multipop(R0, R1, R2, R3, R4, R5);
+	[PTBR + 6] = R10;
+	[PTBR + 7] = "0110";
+endif;
+//now we are sure that the parent process has got heap pages.
+
+//get the stack and user area page of child process
+//here the auxiliary info is just a placeholder value - correct value will be set below
+alias childPTBR R2;
+childPTBR = PAGE_TABLE_BASE + childPID*20;
+
+//setting up the stack of the child process
+multipush(R0, R1, R2, R3, R4, R5);
+R1 = GET_FREE_PAGE;
+call MOD_2;
+R10 = R0;
+multipop(R0, R1, R2, R3, R4, R5);
+[childPTBR + 16] = R10;
+
+multipush(R0, R1, R2, R3, R4, R5);
+R1 = GET_FREE_PAGE;
+call MOD_2;
+R10 = R0;
+multipop(R0, R1, R2, R3, R4, R5);
+[childPTBR + 18] = R10;
+
+//setting up the user area page for child process
+multipush(R0, R1, R2, R3, R4, R5);
+R1 = GET_FREE_PAGE;
+call MOD_2;
+R10 = R0;
+multipop(R0, R1, R2, R3, R4, R5);
+alias childProcessTable R6;
+childProcessTable = PROCESS_TABLE + 16*childPID;
+[childProcessTable + 11] = R10;
+
+//initialise the process table of child
+//copy the user id
+[childProcessTable + 1] = [parentProcessTable + 1];
+//copy the swap flag, user area swap status
+[childProcessTable + 6] = [parentProcessTable + 6];
+[childProcessTable + 10] = [parentProcessTable + 10];
+//inode index
+[childProcessTable + 7] = [parentProcessTable + 7];
+//UPTR
+[childProcessTable + 13] = [parentProcessTable + 13];
+//MODE Flag = 0 ,KPTR = 0, TICK = 0
+[childProcessTable + 9] = 0;
+[childProcessTable + 12] = 0;
+[childProcessTable + 0] = 0;
+
+//PPID = parents pid
+[childProcessTable + 2] = [SYSTEM_STATUS_TABLE+1];
+
+//state = created
+[childProcessTable + 4] = CREATED;
+
+//user area page is alread set at line number 79
+//pid, ptbr and ptrlr are set inside the get pcb entry function
+//input buffer no need to initialize
+
+//copy the per process resource table stuff to the child process
+//per process resource table is located at
+//the last 8*2 words of user area page
+//0 - 511 words are in total
+//last 16 words are needed.
+alias i R3;
+i = 0;
+while( (i < 8) ) do
+	[[childProcessTable + 11]*512 + 496 + i*2] = [[parentProcessTable + 11]*512 + 496 + i*2];
+	[[childProcessTable + 11]*512 + 496 + i*2 + 1] = [[parentProcessTable + 11]*512 + 496 + i*2 + 1];
+	if( ([ [childProcessTable + 11]*512 + 496 + i*2] == SEMAPHORE) ) then
+		//incrementing semaphore table process count of the shared semaphores
+		[SEMAPHORE_TABLE + [ [childProcessTable + 11]*512 + 496 + i*2]*4 + 1] = [SEMAPHORE_TABLE + [ [childProcessTable + 11]*512 + 496 + i*2]*4 + 1] + 1;
+	endif;
+	i = i + 1;
+endwhile;
+
+//copy the per process disk map table of parent to child
+//dont copy the values for stack page and user area page
+//so the value of child wherever not found will be -1
+//from 2..7 we are copying heap and code stuff
+i = 2;
+while( (i <= 7) ) do
+	[DISK_MAP_TABLE + childPID*10 + i] = [DISK_MAP_TABLE + [SYSTEM_STATUS_TABLE+1]*10 + i];
+	i = i + 1;
+endwhile;
+//user area page and stack are invalid for child
+[DISK_MAP_TABLE + childPID*10 + 0] = -1;
+[DISK_MAP_TABLE + childPID*10 + 1] = -1;
+[DISK_MAP_TABLE + childPID*10 + 8] = -1;
+[DISK_MAP_TABLE + childPID*10 + 9] = -1;
+
+//Initialize the page table of child
+//heap = 2, 3
+//code = 4, 5, 6, 7
+//lib = 0, 1
+i = 0;
+while( (i <= 7) ) do
+	[childPTBR + i*2] = [PTBR + i*2];
+	[MEMORY_FREE_LIST + [childPTBR + i*2]] = 1 + [MEMORY_FREE_LIST + [childPTBR + i*2]];
+	[childPTBR + i*2+1] = [PTBR + i*2+1];
+	i = i + 1;
+endwhile;
+
+//stack pages
+//stack pages were assigned in line number: 56
+//but the auxiliarly inforamation should be same as parent
+[childPTBR + 8*2 + 1] = [PTBR + 8*2 + 1];
+[childPTBR + 9*2 + 1] = [PTBR + 9*2 + 1];
+//now copy the content of user stack we have to do that word by word
+i = 0;
+while( (i < 512) ) do
+	[[childPTBR + 8*2]*512 + i] = [[PTBR + 8*2]*512 + i];
+	[[childPTBR + 9*2]*512 + i] = [[PTBR + 9*2]*512 + i];
+	i = i + 1;
+endwhile;
+
+//store value in BP to top of kernel stack of child process
+i = [childProcessTable + 12]*512-1;
+i = i + 1;
+[i] = BP;
+
+//set up the return value in parent
+alias ret R2;
+ret = ( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512;
+[ret] = childPID;
+//set up the return value in child
+//ret = ( [childPTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512;
+ret = ( [[childProcessTable + 14] + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512;
+[ret] = 0;
+
+//mode of parent = 0
+[parentProcessTable + 9] = 0;
+//switch to user stack of parent
+SP = [parentProcessTable + 13];
+
+ireturn;
