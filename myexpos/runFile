@@ -1,14 +1,15 @@
 load --exhandler ../spl/spl_progs/stage21/intexception_20.xsm
 load --library ../expl/library.lib
 load --os ../spl/spl_progs/stage18/os_startup.xsm
-load --idle ../expl/samples/stage12/sample_idle.xsm
+load --idle ../expl/samples/stage23/idle.xsm
 load --init ../expl/samples/stage21/shellmk3.xsm
-load --module 0 ../spl/spl_progs/stage22/mod0_22.xsm
+load --module 0 ../spl/spl_progs/stage23/mod0_23.xsm
 load --module 1 ../spl/spl_progs/stage22/mod1_22.xsm
 load --module 2 ../spl/spl_progs/stage19/mod2_19.xsm
-load --module 4 ../spl/spl_progs/stage18/mod4.xsm
+load --module 4 ../spl/spl_progs/stage23/mod4_23.xsm
 load --module 5 ../spl/spl_progs/stage20/scheduler_mod_5_20.xsm
-load --module 7 ../spl/spl_progs/stage22/boot_module_22.xsm
+load --module 7 ../spl/spl_progs/stage23/boot_module_23.xsm
+load --int=4 ../spl/spl_progs/stage23/int4_23.xsm
 load --int=6 ../spl/spl_progs/stage18/int6.xsm
 load --int=7 ../spl/spl_progs/stage18/int7.xsm
 load --int=8 ../spl/spl_progs/stage22/int8_22.xsm
@@ -17,7 +18,7 @@ load --int=10 ../spl/spl_progs/stage20/int10_20.xsm
 load --int=11 ../spl/spl_progs/stage21/int11_21.xsm
 load --int=13 ../spl/spl_progs/stage22/int13_22.xsm
 load --int=14 ../spl/spl_progs/stage22/int14_22.xsm
-load --int=15 ../spl/spl_progs/stage21/int15_21.xsm
+load --int=15 ../spl/spl_progs/stage23/int15_23.xsm
 load --int=timer ../spl/spl_progs/stage18/inttimer.xsm
 load --int=console ../spl/spl_progs/stage18/intconsole.xsm
 load --int=disk ../spl/spl_progs/stage18/intdisk.xsm

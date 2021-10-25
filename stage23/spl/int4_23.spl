@@ -1,0 +1,245 @@
+// int 4 -> create(1) and delete(4)
+alias userSP R0;
+userSP = SP;
+
+//extract the sys call number
+alias sysCallNum R1;
+sysCallNum = [ ( [PTBR + 2*((userSP-5)/512)]*512 ) + (userSP-5)%512 ];
+
+alias ret_add R11;
+ret_add = ( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512;
+
+//code size reduction step
+alias procesTable R8;
+procesTable = PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16;
+
+//switch to kernel stack
+[procesTable + 13] = SP;
+SP = [procesTable + 11]*512 - 1;
+
+//Create sys call
+if( (sysCallNum == 1) ) then
+	//arguments -> File name, Permission (0 or 1)
+	//return value -> 0: Success, -1: No free inode table entry
+	[procesTable + 9] = 1;
+	alias fileName R2;
+	alias permission R3;
+	fileName = [( [PTBR + 2*((userSP-4)/512)]*512 ) + (userSP-4)%512];
+	permission = [( [PTBR + 2*((userSP-3)/512)]*512 ) + (userSP-3)%512];
+
+	alias i R4;
+	alias freeIdx R6;
+	freeIdx = -1;
+	i = 0;
+	while( (i < MAX_FILE_NUM) ) do
+		if( [INODE_TABLE + i*16 + 1] == fileName ) then
+			//return 0: file alread present
+			//[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = 0;
+			[ret_add] = 0;
+			SP = [procesTable + 13];
+			[procesTable + 9] = 0;
+			ireturn;
+		endif;
+		if( (freeIdx == -1) && ([INODE_TABLE + i*16 + 1]) == -1) then
+			freeIdx = i;
+		endif;
+		i = i + 1;
+	endwhile;
+
+	//we are here means that we have to create a brand new file
+	//the free idx will be available in freeIdx variable
+	//if we could'nt find a free location freeIdx will be -1
+	if( (freeIdx == -1) ) then
+		//[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = -1;
+		[ret_add] = -1;
+		SP = [procesTable + 13];
+		[procesTable + 9] = 0;
+		ireturn;
+	endif;
+
+	//code reduction using register R9
+	alias inodeFree R9;
+	inodeFree = INODE_TABLE + freeIdx*16;
+	//we are here means we got the free inode index
+	[inodeFree + 1] = fileName;
+	[inodeFree + 2] = 0;
+	[inodeFree + 0] = DATA;
+
+	//data blocks
+	//[inodeFree + 8] = -1;
+	//[inodeFree + 9] = -1;
+	//[inodeFree + 10] = -1;
+	//[inodeFree + 11] = -1;
+	//code reduction inserting loop
+	//i = 8;
+	//while( (i <= 11) ) do
+	//	[inodeFree + i] = -1;
+	//	i = i + 1;
+	//endwhile;
+	//invalidating data blocks is not needed
+
+	//user id
+	[inodeFree + 3] = [procesTable + 3];
+
+	//permission
+	[inodeFree + 4] = permission;
+
+	//root file entries
+	[ROOT_FILE + freeIdx*8 + 0] = fileName;
+	[ROOT_FILE + freeIdx*8 + 1] = 0;
+	[ROOT_FILE + freeIdx*8 + 2] = DATA;
+	//code refactoring for register overflow
+	//use reg r7 for refacoring
+	//[ROOT_FILE + freeIdx*8 + 3] = [USER_TABLE + 2*[INODE_TABLE + freeIdx*16 + 3] + 0]
+	R7 = [USER_TABLE + 2*[inodeFree + 3] + 0];
+	[ROOT_FILE + freeIdx*8 + 3] = R7;
+	[ROOT_FILE + freeIdx*8 + 4] = permission;
+
+	//return 0
+	//[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = 0;
+	//SP = [procesTable + 13];
+	//[procesTable + 9] = 0;
+	//ireturn;
+	//as part of code reduction code moved outisde of if conditions - since both returns success at the end
+endif;
+
+//delete sys call
+if( (sysCallNum == 4) ) then
+	//arguments -> file name
+	//return -> 0: Success/File does not exist, -1: Permission denied, -2: File is open
+	[procesTable + 9] = 4;
+	alias fileName R2;
+	fileName = [( [PTBR + 2*((userSP-4)/512)]*512 ) + (userSP-4)%512];
+
+	alias inodeIdx R3;
+	inodeIdx = 0;
+	alias found R4;
+	found = 0;
+	while( (inodeIdx < MAX_FILE_NUM) ) do
+		if( ([INODE_TABLE + inodeIdx*16 + 1] == fileName) ) then
+			found = 1;
+			break;
+		endif;
+		inodeIdx = inodeIdx + 1;
+	endwhile;
+	
+	if( (found == 0) ) then
+		//reutrn 0: couldn't find a file with this name
+		//[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = 0;
+		[ret_add] = 0;
+		SP = [procesTable + 13];
+		[procesTable + 9] = 0;
+		ireturn;
+	endif;
+
+	//code reduction with reg R9
+	alias inodeEntry R9;
+	inodeEntry = INODE_TABLE + inodeIdx*16;
+
+	if( ([inodeEntry + 0] != DATA) ) then
+		//reutrn -1 if file is not data file
+		//[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = -1;
+		[ret_add] = -1;
+		SP = [procesTable + 13];
+		[procesTable + 9] = 0;
+		ireturn;
+	endif;
+
+	if( ([inodeEntry + 4] == EXCLUSIVE) ) then
+		if( ([SYSTEM_STATUS_TABLE + 0] != ROOT) && ([SYSTEM_STATUS_TABLE + 0] != [inodeEntry +3]) ) then
+			print "sad";
+			//return -1: current user cant delete the file
+			//[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = -1;
+			[ret_add] = -1;
+			SP = [procesTable + 13];
+			[procesTable + 9] = 0;
+			ireturn;
+		endif;
+	endif;
+
+
+	//acquire lock on the file by calling acquire_inode() of resource manager module
+	multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11);
+	R1 = ACQUIRE_INODE;
+	R2 = inodeIdx;
+	R3 = [SYSTEM_STATUS_TABLE + 1];
+	call MOD_0;
+	multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11);
+
+
+	//if file open count is not -1: return -2: cant delete an open file
+	if( ([FILE_STATUS_TABLE + 4*inodeIdx + 1] != -1) ) then
+		//release the lock
+		multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11);
+		R1 = RELEASE_INODE;
+		R2 = inodeIdx;
+		R3 = [SYSTEM_STATUS_TABLE + 1];
+		call MOD_0;
+		multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11);
+		//return -2: cant delete an open file
+		//[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = -2;
+		[ret_add] = -2;
+		SP = [procesTable + 13];
+		[procesTable + 9] = 0;
+		ireturn;
+	endif;
+
+	//for each disk block allocated to the file - release the disk blocks
+	alias i R5;
+	i = 8;
+	while( (i <= 11) ) do
+		if( ([inodeEntry + i] != -1) ) then
+			//reset the buffer dirty bit
+			//statement size reduction
+			R7 = ([inodeEntry + i]%MAX_BUFFER);
+			if( ([BUFFER_TABLE + (R7)*4 + 0] == [inodeEntry + i]) ) then
+				[BUFFER_TABLE + (R7)*4 + 1] = 0;
+			endif;
+
+			//release the block
+			multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11);
+			R1 = RELEASE_BLOCK;
+			R2 = [inodeEntry + i];
+			R3 = [SYSTEM_STATUS_TABLE + 1];
+			call MOD_2;
+			multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11);
+
+			//[INODE_TABLE + inodeIdx*16 + i] = -1;
+		endif;
+		i = i + 1;
+	endwhile;
+	//set the file name to -1
+	//inode table the 
+	[inodeEntry + 1] = -1;
+	//invalidate the root table
+	//[ROOT_FILE + 8*inodeIdx + 0] = -1;
+	//[ROOT_FILE + 8*inodeIdx + 1] = -1;
+	//[ROOT_FILE + 8*inodeIdx + 2] = -1;
+	//[ROOT_FILE + 8*inodeIdx + 3] = -1;
+	//[ROOT_FILE + 8*inodeIdx + 4] = -1;
+	//code size reduction inserting while loop
+	[ROOT_FILE + 8*inodeIdx + 0] = -1;
+
+	//release the lock on file: release_inode()
+	multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11);
+	R1 = RELEASE_INODE;
+	R2 = inodeIdx;
+	R3 = [SYSTEM_STATUS_TABLE + 1];
+	call MOD_0;
+	multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11);
+
+	//return 0: success
+	//[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = 0;
+	//SP = [procesTable + 13];
+	//[procesTable + 9] = 0;
+	//ireturn;
+	//as part of code size reduction moved outside if condition
+endif;
+
+	print "hi4";
+//return 0: success
+//[( [PTBR + 2*((userSP-1)/512)]*512 ) + (userSP-1)%512] = 0;
+[ret_add] = 0;
+SP = [procesTable + 13];
+[procesTable + 9] = 0;
+ireturn;

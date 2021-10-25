@@ -1,0 +1,15 @@
+int main()
+{
+    decl
+
+        int permission,temp;
+        str filename;
+
+    enddecl
+    begin
+        read(filename);
+        read(permission);
+        temp = exposcall("Create",filename,permission);
+        return 0;
+    end
+}

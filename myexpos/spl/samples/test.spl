@@ -1,9 +1,13 @@
-start:
-R0 = "HELLO_WORLD";
-print R0;
-R1 = TIMER;
-print R1;
-R3 = R0[1];
-print R3;
-multipush (R1,PTLR,R2,PTBR);
-multipop (R1,PTLR,R2,PTBR);
+//start:
+//R0 = "HELLO_WORLD";
+//print R0;
+//R1 = TIMER;
+//print R1;
+//R3 = R0[1];
+//print R3;
+//multipush (R1,PTLR,R2,PTBR);
+//multipop (R1,PTLR,R2,PTBR);
+if( ([BUFFER_TABLE + ([INODE_TABLE + 10*16 + 2]%MAX_BUFFER)*4 + 0] == [INODE_TABLE + 10*16 + 4]) ) then
+	[BUFFER_TABLE + ([INODE_TABLE + 10*16 + 4]%MAX_BUFFER)*4 + 1] = 0;
+endif;
+

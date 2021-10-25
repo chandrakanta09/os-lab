@@ -1,0 +1,108 @@
+//DEVICE MANAGER MODULE
+//---------------------
+alias functionNum R1;
+alias currentPID R2;
+
+if( (functionNum == DISK_STORE) ) then
+	//arguments: PID, PageNumber, Blocknumber
+	alias PID R2;
+	alias page R3;
+	alias block R4;
+
+	//acquire the disk
+	multipush(R0, R1, R2, R3, R4, R5);
+	R1 = ACQUIRE_DISK;
+	R2 = PID;
+	call MOD_0;
+	multipop(R0, R1, R2, R3, R4, R5);
+
+	//set the parameters of disk status table
+	[DISK_STATUS_TABLE + 0] = 1; //busy
+	[DISK_STATUS_TABLE + 1] = 1; //load or store bit
+	[DISK_STATUS_TABLE + 2] = page;
+	[DISK_STATUS_TABLE + 3] = block;
+
+	//actuall storing to the disk
+	store(page, block);
+
+	//wait for disk interrupt to happen
+	[PROCESS_TABLE + PID*16 + 4] = WAIT_DISK;
+
+	//context switch
+	multipush(R0, R1, R2, R3, R4, R5, R6);
+	call MOD_5;
+	multipop(R0, R1, R2, R3, R4, R5, R6);
+
+	return;
+endif;
+
+if( (functionNum == DISK_LOAD) ) then
+	alias memPageNum R3;
+	alias diskBlock R4;
+	//1. Acquire disk (resource manager module)
+	multipush(R0, R1, R2, R3, R4, R5);
+	R1 = ACQUIRE_DISK;
+	R2 = currentPID;
+	call MOD_0; //resource manager
+	multipop(R0, R1, R2, R3, R4, R5);
+	//2. set disk status table
+	//[DISK_STATUS_TABLE + 0] = 1;
+	[DISK_STATUS_TABLE + 1] = 0;
+	[DISK_STATUS_TABLE + 2] = memPageNum;
+	[DISK_STATUS_TABLE + 3] = diskBlock;
+	//[DISK_STATUS_TABLE + 4] = currentPID;
+	//3. Load
+	load(memPageNum, diskBlock);
+	//4. Status of process = wait disk
+	[PROCESS_TABLE + 16*currentPID + 4] = WAIT_DISK;
+	//5. context switch
+	call MOD_5;
+	return;
+endif;
+
+if( (functionNum == TERMINAL_WRITE) ) then
+	//terminal acquire
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+	functionNum = 8;
+	currentPID = [PROCESS_TABLE +[SYSTEM_STATUS_TABLE+1]*16 + 1];
+	call MOD_0;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+
+	print R3;
+
+	//terminal release
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+	functionNum = 9;
+	currentPID = [PROCESS_TABLE +[SYSTEM_STATUS_TABLE+1]*16 + 1];
+	call MOD_0;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+	//save the return value if needed
+	return;
+endif;
+
+if( (functionNum == TERMINAL_READ) ) then
+	//terminal acquire
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+	functionNum = 8;
+	currentPID = [SYSTEM_STATUS_TABLE+1];
+	call MOD_0;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+
+	read;
+
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 4] = WAIT_TERMINAL;
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+	call MOD_5;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15);
+
+	alias wordLogicalAdd R3;
+	alias PhyAdd R4;
+	PhyAdd = ([PTBR + (2 * (wordLogicalAdd/512))] * 512) + (wordLogicalAdd%512);
+	wordLogicalAdd = [PhyAdd];
+	PhyAdd = ([PTBR + (2 * (wordLogicalAdd/512))] * 512) + (wordLogicalAdd%512);
+
+	[PhyAdd] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 8];
+	return;
+endif;
+
+return;
