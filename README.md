@@ -26,7 +26,7 @@ OS Lab - National Institute of Technology, Calicut
  - [x] Stage 20: Fork sys call: it was nice had to debug a lot due to a stupid careless mistage in int 10 code
  - [x] Stage 21: Wait, signal, get pid, get ppid - a lot of debug time man. silly ass error.
  - [x] Stage 22: Semaphores - Bug less code is uploaded
- - [ ] Stage 23
+ - [x] Stage 23: File creation and deletion
  - [ ] Stage 24
  - [ ] Stage 25
  - [ ] Stage 26
