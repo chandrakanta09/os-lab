@@ -1,0 +1,18 @@
+int main()
+{
+    decl
+        int Fret,temp;
+    enddecl
+    begin
+        Fret=exposcall("Fork");
+        if (Fret == -1) then
+            temp=exposcall("Write",-2,"Fork Failed");
+        endif;
+        if (Fret == 0) then
+            temp=exposcall("Exec","odd.xsm");
+        else
+            temp=exposcall("Exec","even.xsm");
+        endif;
+        return 0;
+    end
+}

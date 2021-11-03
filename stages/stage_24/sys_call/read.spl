@@ -1,0 +1,90 @@
+alias currentPID R0;
+alias currentPTE R1;
+alias userSP R2;
+alias fileDescriptor R3;
+alias wordAddr R4;
+//breakpoint;
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 9] = 7;
+userSP = SP;
+[currentPTE + 13] = SP;
+SP = [currentPTE + 11] * 512 - 1;
+fileDescriptor = [ [PTBR + ( (userSP - 4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+wordAddr = [ [PTBR + ( (userSP - 3) / 512 ) * 2] * 512 + (userSP - 3) % 512 ];
+if (fileDescriptor==-1) then
+	multipush(R0,R1,R2,R3,R4);
+	R1=4;
+	R2=currentPID;
+	R3=wordAddr;
+	call MOD_4;
+	multipop(R0,R1,R2,R3,R4);
+	[ [PTBR + ( (userSP - 1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+	[currentPTE + 9] = 0;
+	SP = [currentPTE + 13];
+	ireturn;
+endif;
+if (fileDescriptor >= 0 && fileDescriptor < 8 && [ [currentPTE + 11] * 512 + 496 + fileDescriptor*2] == 0) then
+	
+	alias OpenFileInd R5;
+	alias seekptr R6;
+	alias DiskBlockNum R7;
+	alias InodeInd R8;
+	
+	
+	OpenFileInd = [ [currentPTE + 11] * 512 + 496 + fileDescriptor*2 + 1];
+	//print [OPEN_FILE_TABLE + OpenFileInd * 4] ;
+
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+	R1 = 4;
+	R2 = currentPID;
+	R3 = [ OPEN_FILE_TABLE + OpenFileInd * 4];
+	call MOD_0;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+
+	seekptr = [OPEN_FILE_TABLE + OpenFileInd * 4 + 2];
+	InodeInd = [OPEN_FILE_TABLE + OpenFileInd * 4];
+	DiskBlockNum = [ INODE_TABLE + InodeInd * 16 + (8 + (seekptr / 512)) ] ;
+
+	if (seekptr == [ INODE_TABLE + InodeInd * 16 + 2]) then
+		[ [PTBR + ( (userSP - 1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -2;
+		[ [PTBR + ( wordAddr / 512 ) * 2] * 512 + wordAddr % 512 ] = " ";
+	else
+		//print "IN buff read";
+		//print [ INODE_TABLE + InodeInd * 16 + (8 + (seekptr / 512)) ] ;
+		//print [ INODE_TABLE + InodeInd * 16 + 8 ] ;
+		//print [ INODE_TABLE + InodeInd * 16 + 9] ;
+		//print [ INODE_TABLE + InodeInd * 16 + 10] ;
+		//print seekptr;
+		//print seekptr % 512;
+		//print wordAddr;
+		multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+		R1 = 2;
+		R2 = DiskBlockNum;
+		R3 = seekptr % 512;
+		R4 = wordAddr;
+		call MOD_3;
+		multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+		//print "OUT";
+		[ OPEN_FILE_TABLE + OpenFileInd * 4 + 2] = [ OPEN_FILE_TABLE + OpenFileInd * 4 + 2] + 1;
+		[ [PTBR + ( (userSP - 1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+	endif;
+	
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+	R1=5;
+	R2=currentPID;
+	R3=InodeInd;
+	call MOD_0;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+	
+else
+	[ [PTBR + ( (userSP - 1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;	
+endif;
+
+[currentPTE + 9] = 0;
+SP = [currentPTE + 13];
+ireturn;
+
+
+
+

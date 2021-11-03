@@ -1,0 +1,4 @@
+load --os /home/user/myexpos/stages/stage_12/os_startup.xsm
+load --init /home/user/myexpos/stages/stage_12/assg1_init.xsm
+load --idle /home/user/myexpos/stages/stage_12/assg1_idle.xsm
+load --int=timer /home/user/myexpos/stages/stage_12/assg2.xsm

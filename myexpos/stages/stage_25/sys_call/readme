@@ -1,0 +1,10 @@
+Function        No.
+-----------------------------------------
+read            6
+write           7
+fork            8
+exec            9
+exit            10
+wait,signal     11
+shutdown        15
+

@@ -1,0 +1,135 @@
+breakpoint;
+alias currentPID R0;
+alias currentPTE R1;
+alias userSP R2;
+alias fileName R3;
+alias iter R4;
+alias inode_ind R5;
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+userSP = SP;
+[currentPTE + 13] = SP;
+SP = [currentPTE + 11] * 512 - 1;
+[currentPTE + 9] = 9;
+fileName = [ [PTBR + ( (userSP - 4) / 512 ) * 2] * 512 + (userSP - 4) % 512];
+iter = 1;
+while (iter < 60) do
+	if ([INODE_TABLE + iter * 16 + 1] == fileName && [INODE_TABLE + iter * 16] == EXEC) then
+		break;
+	endif;
+	iter = iter + 1;
+endwhile;
+if (iter == 60) then
+	[ [PTBR + ( (userSP - 1) / 512 ) * 2] * 512 + (userSP - 1) % 512] = -1;
+	[currentPTE + 9] = 0;
+	SP = [currentPTE + 13];
+	ireturn;
+endif;
+inode_ind = iter;
+multipush(R0,R1,R2,R3,R4,R5);
+R1=3;
+R2=[SYSTEM_STATUS_TABLE + 1];
+call MOD_1;
+multipop(R0,R1,R2,R3,R4,R5);
+
+[MEMORY_FREE_LIST + [currentPTE + 11] ] = [MEMORY_FREE_LIST + [currentPTE + 11] ] + 1;
+if ([MEMORY_FREE_LIST + [currentPTE + 11] ] == 1) then
+	[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+endif;
+
+SP=[currentPTE + 11] * 512 - 1;
+[currentPTE + 4] = RUNNING;
+[currentPTE + 7] = inode_ind;
+
+//Setting up page table for new process
+
+PTBR = PAGE_TABLE_BASE + currentPID * 20;
+
+//Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+//--------------------------------------------------------------------------------
+
+//Heap
+[PTBR+4] = -1;
+[PTBR+5] = "0000";
+[PTBR+6] = -1;
+[PTBR+7] = "0000";
+
+//--------------------------------------------------------------------------------
+//Stack
+
+multipush(R0,R1,R2,R3,R4,R5);
+R1=1;
+call MOD_2;
+[PTBR+16] = R0;
+[PTBR+17] = "0110";
+multipop(R0,R1,R2,R3,R4,R5);
+
+multipush(R0,R1,R2,R3,R4,R5);
+R1=1;
+call MOD_2;
+[PTBR+18] = R0;
+[PTBR+19] = "0110";
+multipop(R0,R1,R2,R3,R4,R5);
+
+//-------------------------------------------------------------------------------
+//Code
+
+[PTBR+10] = -1;
+[PTBR+11] = "0000";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+multipush(R0,R1,R2,R3,R4,R5);
+R1=5;
+R2=[INODE_TABLE + inode_ind * 16 + 8];
+R3=[SYSTEM_STATUS_TABLE + 1];
+call MOD_2;
+[PTBR+8] = R0;
+[PTBR+9] = "0100";
+multipop(R0,R1,R2,R3,R4,R5);
+
+//-------------------------------------------------------------------------------
+
+[[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
+breakpoint;
+
+//Setting up resource table for new process
+iter = 0;
+while (iter<8) do
+	[[currentPTE + 11] * 512 + 496 + iter] = -1;
+	[[currentPTE + 11] * 512 + 496 + iter + 1] = -1;
+	iter = iter + 1;
+endwhile;
+
+//Setting up disk map table for new process
+
+iter = 0;
+while (iter<10) do
+	[DISK_MAP_TABLE + currentPID * 10 + iter] = -1;
+	iter = iter + 1;
+endwhile;
+[DISK_MAP_TABLE + currentPID * 10 + 4] = [INODE_TABLE + inode_ind * 16 + 8];
+if ([INODE_TABLE + inode_ind * 16 + 2] > 512) then
+	[DISK_MAP_TABLE + currentPID * 10 + 5] = [INODE_TABLE + inode_ind * 16 + 9];
+endif;
+
+if ([INODE_TABLE + inode_ind * 16 + 2] > 1024) then
+	[DISK_MAP_TABLE + currentPID * 10 + 6] = [INODE_TABLE + inode_ind * 16 + 10];
+endif;
+
+if ([INODE_TABLE + inode_ind * 16 + 2] > 1536) then
+	[DISK_MAP_TABLE + currentPID * 10 + 7] = [INODE_TABLE + inode_ind * 16 + 11];
+endif;
+
+
+[currentPTE + 9] = 0;
+SP = 8 * 512;
+breakpoint;
+ireturn;

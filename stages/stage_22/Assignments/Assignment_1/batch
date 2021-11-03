@@ -1,0 +1,23 @@
+load --os /home/user/myexpos/stages/stage_13/os_startup.xsm
+load --init /home/user/myexpos/stages/stage_21/shell.xsm
+load --idle /home/user/myexpos/stages/stage_16/idle.xsm
+load --int=timer /home/user/myexpos/stages/stage_14/timer.xsm
+load --exhandler /home/user/myexpos/stages/stage_19/exhandler.xsm
+load --int=10 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/exit.xsm
+load --library /home/user/myexpos/expl/library.lib
+load --int=7 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/int_7.xsm
+load --module 7 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/bootmodule.xsm
+load --module 5 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/scheduler.xsm
+load --module 0 /home/user/myexpos/stages/stage_22/module_0.xsm
+load --module 4 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/module_4.xsm
+load --int=console /home/user/myexpos/stages/stage_16/intr_cons.xsm
+load --int=6 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/read.xsm
+load --int=9 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/int_9.xsm
+load --module 1 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/module_1.xsm
+load --module 2 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/module_2.xsm
+load --int=disk /home/user/myexpos/stages/stage_21/int_handle/intr_disk.xsm
+load --int=8 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/fork.xsm
+load --int=11 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/int_11.xsm
+load --int=15 /home/user/myexpos/stages/stage_21/sys_call/shutdown.xsm
+load --int=13 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/int_13.xsm
+load --int=14 /home/user/myexpos/stages/stage_22/Assignments/Assignment_1/int_14.xsm

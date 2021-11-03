@@ -1,0 +1,41 @@
+decl
+    int arr[50],n,temp,i,j,jl;
+enddecl
+int main()
+{
+    begin
+        read(n);
+        //Reading array
+        i=0;
+        while (i<n) do
+            read(arr[i]);
+            i=i+1;
+        endwhile;
+
+        //Sorting array using Bubble Sort Algorithm
+        i=0;
+        while (i < n) do
+            j=0;
+            jl=n-i-1;
+            while (j < jl) do
+                if (arr[j] > arr[j+1]) then
+                    temp = arr[j];
+                    arr[j] = arr[j+1];
+                    arr[j+1] = temp;
+                endif;
+                j = j + 1;
+            endwhile;
+            i=i+1;
+        endwhile;   
+
+        temp=exposcall("Write",-2,"Sorted array is");    
+
+        //Printing array
+        i=0;
+        while (i<n) do
+            write(arr[i]);
+            i=i+1;
+        endwhile;
+        return 0;
+    end
+}

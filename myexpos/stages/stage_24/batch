@@ -1,0 +1,26 @@
+load --os ../stages/stage_13/os_startup.xsm
+load --init ../stages/stage_21/shell.xsm
+load --idle ../stages/stage_16/idle.xsm
+load --int=timer ../stages/stage_14/timer.xsm
+load --exhandler ../stages/stage_19/exhandler.xsm
+load --int=10 ../stages/stage_24/sys_call/exit.xsm
+load --library ../expl/library.lib
+load --int=7 ../stages/stage_15/int_7.xsm
+load --module 7 ../stages/stage_24/Modules/bootmodule.xsm
+load --module 5 ../stages/stage_21/scheduler.xsm
+load --module 0 ../stages/stage_24/Modules/module_0.xsm
+load --module 4 ../stages/stage_23/module_4.xsm
+load --int=console ../stages/stage_16/intr_cons.xsm
+load --int=6 ../stages/stage_24/sys_call/read.xsm
+load --int=9 ../stages/stage_19/int_9.xsm
+load --module 1 ../stages/stage_24/Modules/module_1.xsm
+load --module 2 ../stages/stage_21/module_2.xsm
+load --int=disk ../stages/stage_21/int_handle/intr_disk.xsm
+load --int=8 ../stages/stage_24/sys_call/fork.xsm
+load --int=11 ../stages/stage_21/int_11.xsm
+load --int=15 ../stages/stage_23/shutdown.xsm
+load --int=13 ../stages/stage_24/sys_call/int_13.xsm
+load --int=14 ../stages/stage_24/sys_call/int_14.xsm
+load --int=4 ../stages/stage_23/int_4.xsm
+load --int=5 ../stages/stage_24/sys_call/int_5.xsm
+load --module 3 ../stages/stage_24/Modules/module_3.xsm

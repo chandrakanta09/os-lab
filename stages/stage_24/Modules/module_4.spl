@@ -1,0 +1,79 @@
+//readme
+//device manager
+//function no	name		arguments
+//	1	disk store		PID, Page no, Block no
+//	2	disk load		PID, Page no, Block no
+//	3	terminal write	PID, word
+//	4	terminal read	PID, address
+alias functionNum R1;
+alias currentPID R2;
+if (functionNum == 1) then
+	multipush(R1,R2,R3,R4);
+	R1=3;
+	//R2 already contains PID
+	call MOD_0;
+	multipop(R1,R2,R3,R4);
+	[DISK_STATUS_TABLE + 1] = 1;
+	[DISK_STATUS_TABLE + 2] = R3;
+	[DISK_STATUS_TABLE + 3] = R4;
+	store(R3,R4);
+	[PROCESS_TABLE + currentPID * 16 + 4] = WAIT_DISK;
+	//breakpoint;
+	call SCHEDULER;
+	return;
+endif;
+if (functionNum == 2) then
+	multipush(R1,R2,R3,R4);
+	R1=3;
+	//R2 already contains PID
+	call MOD_0;
+	multipop(R1,R2,R3,R4);
+	[DISK_STATUS_TABLE + 1] = 0;
+	[DISK_STATUS_TABLE + 2] = R3;
+	[DISK_STATUS_TABLE + 3] = R4;
+	load(R3,R4);
+	[PROCESS_TABLE + currentPID * 16 + 4] = WAIT_DISK;
+	//breakpoint;
+	call SCHEDULER;
+	return;
+endif;
+if (functionNum==3) then
+	
+	multipush(R1,R2,R3);
+	R1=8;
+	R2=[SYSTEM_STATUS_TABLE + 1];
+	call MOD_0;
+	multipop(R1,R2,R3);
+	
+	print R3;
+	
+	multipush(R1,R2);
+	R1=9;
+	R2=[SYSTEM_STATUS_TABLE + 1];
+	call MOD_0;
+	multipop(R1,R2);
+	return;
+
+endif;
+
+if (functionNum==4) then
+
+	multipush(R1,R2,R3);
+	R1=8;
+	R2=[SYSTEM_STATUS_TABLE + 1];
+	call MOD_0;
+	multipop(R1,R2,R3);
+	
+	read;
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = WAIT_TERMINAL;
+	
+	multipush(R1,R2,R3);
+	call SCHEDULER;
+	multipop(R1,R2,R3);
+	alias physicalAddr R4;
+	physicalAddr = [PTBR + (R3 / 512) * 2] * 512 + R3 % 512;
+	[physicalAddr] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 8];
+	return;
+
+endif;
+

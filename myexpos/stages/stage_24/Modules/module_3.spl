@@ -1,0 +1,126 @@
+//readme
+//process manager
+//function no	name		    arguments
+//	1	BUFFERED_WRITE	Disk block number, Offset, Word
+//	2	BUFFERED_READ	Disk block number, Offset, Memory Address
+//	3	OPEN	        File Name
+//	4	CLOSE	        Open File Table Index
+
+alias functionNum R1;
+
+if (functionNum == 2) then
+    alias DiskBlockNum R2;
+    alias offset R3;
+    alias Addr R4;
+    alias BuffNum R5;
+    BuffNum = (DiskBlockNum % 4);
+    //print "IN BUFF READ";
+    //print DiskBlockNum;
+    //print offset;
+    //print Addr;
+    multipush(R1,R2,R3,R4,R5);
+    R1 = 1;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    R3 = BuffNum;
+    call MOD_0;
+    multipop(R1,R2,R3,R4,R5);
+    //print "BUFF AQUIRED";
+
+    if ([BUFFER_TABLE + BuffNum * 4] != DiskBlockNum) then
+        if ([BUFFER_TABLE + BuffNum * 4] != -1 && [BUFFER_TABLE + BuffNum * 4 + 1] == 1) then
+            //print "IN DISk STORE";
+            multipush(R0,R1,R2,R3,R4,R5);
+            R1 = 1;
+            R3 = 71 + BuffNum;
+            R4 = [BUFFER_TABLE + BuffNum * 4];
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            call MOD_4;
+            multipop(R0,R1,R2,R3,R4,R5);
+            //print "OUT DISK STORE";
+        endif;
+
+        multipush(R0,R1,R2,R3,R4,R5);
+        R1=2;
+        R3 = 71 + BuffNum;
+        R4 = DiskBlockNum;
+        R2=[SYSTEM_STATUS_TABLE + 1];
+        call MOD_4;
+        multipop(R0,R1,R2,R3,R4,R5);
+        [BUFFER_TABLE + BuffNum * 4] = DiskBlockNum;
+    endif;
+    
+    [ [PTBR + ( Addr / 512 ) * 2] * 512 + Addr % 512 ] = [(71 + BuffNum) * 512 + offset];
+
+    multipush(R1,R2,R3,R4);
+    R1 = 2;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    R3 = BuffNum;
+    call MOD_0;
+    multipop(R1,R2,R3,R4);
+    
+endif;
+
+if (functionNum == 3) then
+    alias fileName R2;
+    alias iter R3;
+    alias inodeInd R4;
+
+    iter = 0;
+    while (iter < 60) do
+        if ([INODE_TABLE + iter * 16 + 1] == fileName) then
+            inodeInd = iter;
+            break;
+        endif;
+        iter = iter + 1;
+    endwhile;
+
+	//acquire inode
+    multipush(R1,R2,R3,R4);
+    R1 = 4;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    R3 = iter;
+    call MOD_0;
+    multipop(R1,R2,R3,R4);
+
+    if (inodeInd != 0) then
+        [FILE_STATUS_TABLE + iter * 4 + 1] = [FILE_STATUS_TABLE + iter * 4 + 1] + 1;
+    endif;
+
+    iter = 0;
+    while (iter < 32) do
+        if ([OPEN_FILE_TABLE + iter * 4] == -1) then
+            if (inodeInd == 0) then
+                [OPEN_FILE_TABLE + iter * 4] = INODE_ROOT;
+            else 
+                [OPEN_FILE_TABLE + iter * 4] = inodeInd;
+            endif;
+            [OPEN_FILE_TABLE + iter * 4 + 1] = 1;
+            [OPEN_FILE_TABLE + iter * 4 + 2] = 0;
+            R0 = iter;
+            break;
+        endif;
+        iter = iter + 1;
+    endwhile;
+
+	//release inode
+    multipush(R0,R1,R2,R3,R4);
+    R1 = 5;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    R3 = inodeInd;
+    call MOD_0;
+    multipop(R0,R1,R2,R3,R4);
+endif;
+
+if (functionNum == 4) then
+    alias OpenFileInd R2;
+    alias InodeInd R3;
+    InodeInd = [OPEN_FILE_TABLE + OpenFileInd * 4];
+    [OPEN_FILE_TABLE + OpenFileInd * 4 + 1] = [OPEN_FILE_TABLE + OpenFileInd * 4 + 1] - 1;
+    
+    if ([OPEN_FILE_TABLE + OpenFileInd * 4 + 1] == 0) then
+        [FILE_STATUS_TABLE + InodeInd * 4 + 1] = [FILE_STATUS_TABLE + InodeInd * 4 + 1] - 1;
+        [OPEN_FILE_TABLE + OpenFileInd * 4] = -1;
+    endif;
+endif;
+
+return;

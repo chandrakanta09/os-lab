@@ -1,0 +1,27 @@
+//readme
+//device manager
+//function no	name		arguments
+//	1	disk store		PID, Page no, Block no
+//	2	disk load		PID, Page no, Block no
+//	3	terminal write	PID, word
+//	4	terminal read	PID, address
+alias functionNum R1;
+alias currentPID R2;
+if (functionNum==3) then
+	
+	multipush(R1,R2);
+	R1=8;
+	//R2 already contains currentPID
+	call MOD_0;
+	multipop(R1,R2);
+	
+	print R3;
+	
+	multipush(R1,R2);
+	R1=9;
+	//R2 already contains currentPID
+	call MOD_0;
+	multipop(R1,R2);
+	return;
+
+endif;

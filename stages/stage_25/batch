@@ -1,0 +1,26 @@
+load --os /home/user/myexpos/stages/stage_13/os_startup.xsm
+load --init /home/user/myexpos/stages/stage_21/shell.xsm
+load --idle /home/user/myexpos/stages/stage_16/idle.xsm
+load --int=timer /home/user/myexpos/stages/stage_14/timer.xsm
+load --exhandler /home/user/myexpos/stages/stage_19/exhandler.xsm
+load --int=10 /home/user/myexpos/stages/stage_24/sys_call/exit.xsm
+load --library /home/user/myexpos/expl/library.lib
+load --int=7 /home/user/myexpos/stages/stage_25/sys_call/int_7.xsm
+load --module 7 /home/user/myexpos/stages/stage_24/Modules/bootmodule.xsm
+load --module 5 /home/user/myexpos/stages/stage_21/scheduler.xsm
+load --module 0 /home/user/myexpos/stages/stage_24/Modules/module_0.xsm
+load --module 4 /home/user/myexpos/stages/stage_23/module_4.xsm
+load --int=console /home/user/myexpos/stages/stage_16/intr_cons.xsm
+load --int=6 /home/user/myexpos/stages/stage_25/sys_call/read.xsm
+load --int=9 /home/user/myexpos/stages/stage_19/int_9.xsm
+load --module 1 /home/user/myexpos/stages/stage_25/Modules/module_1.xsm
+load --module 2 /home/user/myexpos/stages/stage_25/Modules/module_2.xsm
+load --int=disk /home/user/myexpos/stages/stage_21/int_handle/intr_disk.xsm
+load --int=8 /home/user/myexpos/stages/stage_24/sys_call/fork.xsm
+load --int=11 /home/user/myexpos/stages/stage_21/int_11.xsm
+load --int=15 /home/user/myexpos/stages/stage_25/sys_call/shutdown.xsm
+load --int=13 /home/user/myexpos/stages/stage_22/int_13.xsm
+load --int=14 /home/user/myexpos/stages/stage_22/int_14.xsm
+load --int=4 /home/user/myexpos/stages/stage_25/sys_call/int_4.xsm
+load --int=5 /home/user/myexpos/stages/stage_25/sys_call/int_5.xsm
+load --module 3 /home/user/myexpos/stages/stage_25/Modules/module_3.xsm

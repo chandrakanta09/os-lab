@@ -1,0 +1,12 @@
+load --os /home/user/myexpos/stages/stage_13/os_startup.xsm
+load --init /home/user/myexpos/stages/stage_14/odd_init.xsm
+load --idle /home/user/myexpos/stages/stage_16/idle.xsm
+load --int=timer /home/user/myexpos/stages/stage_14/timer.xsm
+load --exhandler /home/user/myexpos/spl/spl_progs/haltprog.xsm
+load --int=10 /home/user/myexpos/stages/stage_14/exit.xsm
+load --library /home/user/myexpos/expl/library.lib
+load --int=7 /home/user/myexpos/stages/stage_15/int_7.xsm
+load --module 7 /home/user/myexpos/stages/stage_15/bootmodule.xsm
+load --module 5 /home/user/myexpos/stages/stage_14/scheduler.xsm
+load --module 0 /home/user/myexpos/stages/stage_15/Assignment/module_0_mod.xsm
+load --module 4 /home/user/myexpos/stages/stage_15/module_4.xsm

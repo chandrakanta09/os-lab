@@ -1,0 +1,61 @@
+alias currentPID R4;
+alias currentPTE R5;
+alias userSP R6;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 13] = SP;
+userSP = SP;
+SP = [currentPTE + 11] * 512 - 1;
+
+alias SystemCallNum R7;
+SystemCallNum = [[PTBR + ( (userSP-5) / 512 ) * 2] * 512 + (userSP - 5) % 512 ];
+
+alias iter R8;
+
+if (currentPID != 1) then
+	[57*512 + 404] = [57*512 + 404] + 1;
+endif;
+
+//Semget
+if (SystemCallNum == 17) then
+    [currentPTE + 9] = 17;
+    multipush(R4,R5,R6,R7);
+    R1=6;
+    call MOD_0;
+    multipop(R4,R5,R6,R7);
+    iter = 0;
+    while (iter < 8) do
+        if ( [ [currentPTE + 11] * 512 + 496 + iter*2] == -1) then
+            [ [currentPTE + 11] * 512 + 496 + iter*2] = 1;
+            [ [currentPTE + 11] * 512 + 496 + iter*2 + 1] = R0;
+            [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = iter;
+            break;
+        endif;
+        iter = iter + 1;
+    endwhile;
+    if (iter == 8) then
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;
+    endif;
+endif;
+
+//Semrelease
+if (SystemCallNum == 18) then
+    [currentPTE + 9] = 18;
+    alias semInd R8;
+    semInd = [[PTBR + ( (userSP-4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+    if ([ [currentPTE + 11] * 512 + 496 + semInd*2] == 1 ) then
+        multipush(R4,R5,R6,R7,R8);
+        R1 = 7;
+        R2 = currentPID;
+        R3 = [ [currentPTE + 11] * 512 + 496 + semInd*2 + 1];
+        call MOD_0;
+        multipop(R4,R5,R6,R7,R8);
+        [ [currentPTE + 11] * 512 + 496 + semInd*2] = -1;
+        [ [currentPTE + 11] * 512 + 496 + semInd*2 + 1] = -1;
+    endif;
+endif;
+
+[currentPTE + 9] = 0;
+SP = [currentPTE + 13];
+ireturn;

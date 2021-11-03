@@ -1,0 +1,40 @@
+multipush(BP);
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 12] = SP % 512;
+alias iter R0;
+iter = 1;
+while(iter <= 16) do
+	if( ( [SYSTEM_STATUS_TABLE + 1]  + iter) % 16 == 0) then
+		iter=iter + 1;
+		continue;
+	endif;
+	if ( [PROCESS_TABLE + ( ( [SYSTEM_STATUS_TABLE + 1] + iter) % 16 ) * 16 + 1] != -1 ) then
+		if ( [PROCESS_TABLE + ( ( [SYSTEM_STATUS_TABLE + 1] + iter) % 16 ) * 16 + 4] == CREATED ) then
+			[SYSTEM_STATUS_TABLE + 1] =( [SYSTEM_STATUS_TABLE + 1] + iter ) % 16;
+			[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = RUNNING;
+			[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+			PTBR=[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 14];
+			PTLR=[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 15];	
+			SP=[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
+			//print [SYSTEM_STATUS_TABLE + 1];
+			ireturn;
+		endif;
+		if ( [PROCESS_TABLE + ( ( [SYSTEM_STATUS_TABLE + 1] + iter) % 16 ) * 16 + 4] == READY ) then
+			[SYSTEM_STATUS_TABLE + 1] =( [SYSTEM_STATUS_TABLE + 1] + iter ) % 16;
+			[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = RUNNING;
+			PTBR=[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 14];
+			PTLR=[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 15];
+			SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 12];
+			multipop(BP);
+			return;
+		endif; 
+	endif;
+	iter = iter + 1;
+	
+endwhile;
+[SYSTEM_STATUS_TABLE + 1] = 0;
+[PROCESS_TABLE + 4] = RUNNING;
+PTBR=[PROCESS_TABLE + 14];
+PTLR=[PROCESS_TABLE + 15];
+SP = [PROCESS_TABLE + 11] * 512 + [PROCESS_TABLE + 12];
+multipop(BP);
+return;

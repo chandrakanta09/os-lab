@@ -1,0 +1,112 @@
+alias currentPID R0;
+alias currentPTE R1;
+alias userSP R2;
+alias fileDescriptor R3;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 9] = 5;
+userSP = SP;
+[currentPTE + 13] = SP;
+SP = [currentPTE + 11] * 512 - 1;
+
+
+fileDescriptor = [[PTBR + 2 * ((userSP - 4) / 512)] * 512 + ((userSP - 4) % 512)];
+alias word R4;
+word = [[PTBR + 2 * ((userSP - 3) / 512)] * 512 + ((userSP - 3) % 512)];
+
+if (fileDescriptor == -2) then
+	
+	multipush(R0,R1,R2,R3,R4,R5,R6);
+	R1=3;
+	R2=[SYSTEM_STATUS_TABLE + 1];
+	R3=word;
+	call MOD_4;
+	multipop(R0,R1,R2,R3,R4,R5,R6);
+
+	
+	[[PTBR + 2 * (userSP - 1)/ 512] * 512 + ((userSP - 1) % 512)] = 0;
+	SP = userSP;
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+	ireturn;
+
+endif;
+if (fileDescriptor >= 0 && fileDescriptor < 8 && [ [currentPTE + 11] * 512 + 496 + fileDescriptor*2] == 0) then
+	alias OpenFileInd R5;
+	alias seekptr R6;
+	alias DiskBlockNum R7;
+	alias InodeInd R8;
+	
+	
+	OpenFileInd = [ [currentPTE + 11] * 512 + 496 + fileDescriptor*2 + 1];
+	//print [INODE_TABLE + [OPEN_FILE_TABLE + OpenFileInd * 4] * 16 + 1] ;
+
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+	R1 = 4;
+	R2 = currentPID;
+	R3 = [ OPEN_FILE_TABLE + OpenFileInd * 4];
+	call MOD_0;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+
+	seekptr = [OPEN_FILE_TABLE + OpenFileInd * 4 + 2];
+	InodeInd = [OPEN_FILE_TABLE + OpenFileInd * 4];
+	
+	if ([INODE_TABLE + InodeInd * 16 + 4] == EXCLUSIVE ) then
+		if ([currentPTE + 3] != 1 || [currentPTE + 3] != [INODE_TABLE + InodeInd * 16 + 3]) then
+        	[[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -3;
+        	[currentPTE + 9] = 0;
+        	SP = [currentPTE + 13];
+        	ireturn;
+		endif;
+    endif;
+
+	if (seekptr == 2048) then
+		[ [PTBR + ( (userSP - 1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -2;
+	else
+		DiskBlockNum = [ INODE_TABLE + InodeInd * 16 + (8 + (seekptr / 512)) ] ;
+		
+		if (DiskBlockNum == -1) then
+			multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+			R1 = 3;
+			call MOD_2;
+			[ INODE_TABLE + InodeInd * 16 + (8 + (seekptr / 512)) ] = R0;
+			multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+			DiskBlockNum = [ INODE_TABLE + InodeInd * 16 + (8 + (seekptr / 512)) ];
+		endif;
+
+		//print "IN buff write";
+		//print [ INODE_TABLE + InodeInd * 16 + (8 + (seekptr / 512)) ] ;
+		//print [ INODE_TABLE + InodeInd * 16 + 8 ] ;
+		//print [ INODE_TABLE + InodeInd * 16 + 9] ;
+		//print [ INODE_TABLE + InodeInd * 16 + 10] ;
+		//print seekptr;
+		//print seekptr % 512;
+		//print wordAddr;
+		multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+		R1 = 1;
+		R2 = DiskBlockNum;
+		R3 = seekptr % 512;
+		R4 = word;
+		call MOD_3;
+		multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+		//print "OUT";
+		[ INODE_TABLE + InodeInd * 16 + 2 ] = [ INODE_TABLE + InodeInd * 16 + 2 ] + 1;
+		[ OPEN_FILE_TABLE + OpenFileInd * 4 + 2] = [ OPEN_FILE_TABLE + OpenFileInd * 4 + 2] + 1;
+		[ [PTBR + ( (userSP - 1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+	endif;
+
+	multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+	R1=5;
+	R2=currentPID;
+	R3=InodeInd;
+	call MOD_0;
+	multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+	
+else
+	[ [PTBR + ( (userSP - 1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;	
+endif;
+
+
+[currentPTE + 9] = 0;
+SP = [currentPTE + 13];
+ireturn;

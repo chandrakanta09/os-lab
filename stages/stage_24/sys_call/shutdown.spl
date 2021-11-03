@@ -1,0 +1,70 @@
+alias currentPID R4;
+alias currentPTE R5;
+alias userSP R6;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 13] = SP;
+userSP = SP;
+SP = [currentPTE + 11] * 512 - 1;
+
+alias SystemCallNum R7;
+SystemCallNum = [[PTBR + ( (userSP-5) / 512 ) * 2] * 512 + (userSP - 5) % 512 ];
+
+alias iter R8;
+
+[currentPTE + 9] = 21;
+
+if (currentPID != 1 || [currentPTE + 3] != 1) then
+    [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;
+    [currentPTE + 9] = 0;
+    SP = [currentPTE + 13];
+    ireturn;
+endif;
+
+//inode table
+//loadi(59,3);
+//loadi(60,4);
+multipush(R4);
+R1=1;
+R2=currentPID;
+R3=59;
+R4=3;
+call MOD_4;
+multipop(R4);
+
+multipush(R4);
+R1=1;
+R2=currentPID;
+R3=60;
+R4=4;
+call MOD_4;
+multipop(R4);
+
+
+//diskfreelist
+//loadi(61,2);
+multipush(R4);
+R1=1;
+R2=currentPID;
+R3=61;
+R4=2;
+call MOD_4;
+multipop(R4);
+
+
+//rootfile
+//loadi(62,5);
+multipush(R4);
+R1=1;
+R2=currentPID;
+R3=62;
+R4=5;
+call MOD_4;
+multipop(R4);
+
+halt;
+
+[currentPTE + 9] = 0;
+SP = [currentPTE + 13];
+ireturn;

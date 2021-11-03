@@ -1,0 +1,12 @@
+alias iter R1;
+alias currentPID R2;
+alias currentPTE R3;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 9] = 10;
+SP = [currentPTE + 11] * 512 - 1;
+
+R1=3;
+call MOD_1;
+call SCHEDULER;

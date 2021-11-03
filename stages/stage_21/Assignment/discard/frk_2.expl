@@ -1,0 +1,14 @@
+int main()
+{
+    decl
+        int temp,Fret,pid;
+    enddecl
+    begin
+        Fret = exposcall("Fork");
+        temp = exposcall("Fork");
+        pid = exposcall("Getpid");
+        write(pid);
+        //temp = exposcall("Exec","pid.xsm");
+        return 0;
+    end
+}

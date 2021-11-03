@@ -1,0 +1,1 @@
+Assignment 2: Set two breakpoints (see SPL breakpoint instruction) in the timer interrupt routine, the first one immediately upon entering the timer routine and the second one just before return from the timer routine. Dump the process table entry and page table entries of current process (see XSM debugger for various printing options).

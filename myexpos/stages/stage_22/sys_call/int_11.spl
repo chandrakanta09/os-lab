@@ -1,0 +1,63 @@
+alias currentPID R4;
+alias currentPTE R5;
+alias userSP R6;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 13] = SP;
+userSP = SP;
+SP = [currentPTE + 11] * 512 - 1;
+
+alias SystemCallNum R7;
+SystemCallNum = [[PTBR + ( (userSP-5) / 512 ) * 2] * 512 + (userSP - 5) % 512 ];
+
+alias iter R8;
+
+
+if (SystemCallNum == 11) then
+    [currentPTE + 9] = 11;
+    [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = [currentPTE + 1];
+endif;
+
+if (SystemCallNum == 12) then
+    [currentPTE + 9] = 12;
+    [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = [currentPTE + 2];
+endif;
+
+if (SystemCallNum == 13) then
+    [currentPTE + 9] = 13;
+    alias PID R9;
+    PID = [[PTBR + ( (userSP-4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+    
+    if (PID >= 0 && PID < 16 && PID != currentPID && [PROCESS_TABLE + PID * 16 + 1] != -1 && [PROCESS_TABLE + PID * 16 + 4] != TERMINATED) then
+        
+        [currentPTE + 4] = WAIT_PROCESS;
+        [currentPTE + 5] = PID;
+        multipush(R4,R5,R6,R7);
+        call SCHEDULER;
+        multipop(R4,R5,R6,R7);
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+
+    else
+
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;
+
+    endif;
+    
+endif;
+
+if (SystemCallNum == 14) then
+    [currentPTE + 9] = 14;
+    iter = 0;
+    while (iter < 16) do
+        if([PROCESS_TABLE + iter * 16 + 1] != -1 && [PROCESS_TABLE + iter * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + iter * 16 + 5] == currentPID) then
+            [PROCESS_TABLE + iter * 16 + 4] = READY;
+        endif;
+        iter = iter + 1;
+    endwhile;
+    [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+endif;
+
+[currentPTE + 9] = 0;
+SP = [currentPTE + 13];
+ireturn;

@@ -1,0 +1,131 @@
+alias currentPID R4;
+alias currentPTE R5;
+alias userSP R6;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+userSP = SP;
+
+[currentPTE + 9] = 8;
+[currentPTE + 13] = SP;
+SP = [currentPTE + 11] * 512 -1;
+
+multipush(R4,R5,R6);
+R1=1;
+call MOD_1;
+multipop(R4,R5,R6);
+
+alias childPID R7;
+childPID = R0;
+
+if(childPID==-1) then
+	[ [PTBR + ( (userSP-1) / 512) * 2] * 512 + (userSP - 1) % 512] = -1;
+	[currentPTE + 9] = 0;
+	SP = [currentPTE + 13];
+	ireturn;
+endif;
+
+
+
+if ([PTBR+4] == -1) then
+	multipush(R4,R5,R6,R7);
+	R1=1;
+	call MOD_2;
+	[PTBR+4] = R0;
+	[PTBR + 5] = "0110";
+	R1=1;
+	call MOD_2;
+	[PTBR+6] = R0;
+	[PTBR + 7] = "0110";
+	multipop(R4,R5,R6,R7);
+
+endif;
+
+multipush(R4,R5,R6,R7);
+R1=1;
+call MOD_2;
+multipop(R4,R5,R6,R7);
+[PAGE_TABLE_BASE + childPID * 20 + 16] = R0;
+[PAGE_TABLE_BASE + childPID * 20 + 17] = "0110";
+
+multipush(R4,R5,R6,R7);
+R1=1;
+call MOD_2;
+multipop(R4,R5,R6,R7);
+[PAGE_TABLE_BASE + childPID * 20 + 18] = R0;
+[PAGE_TABLE_BASE + childPID * 20 + 19] = "0110";
+
+alias childPTE R8;
+childPTE = PROCESS_TABLE + childPID * 16;
+
+multipush(R4,R5,R6,R7,R8);
+R1=1;
+call MOD_2;
+multipop(R4,R5,R6,R7,R8);
+
+
+[childPTE + 0] = 0;
+[childPTE + 2] = currentPID;
+[childPTE + 3] = [currentPTE + 3];
+[childPTE + 4] = CREATED;
+[childPTE + 6] = [currentPTE + 6];
+[childPTE + 7] = [currentPTE + 7];
+[childPTE + 9] = 0;
+[childPTE + 10] = [currentPTE + 10];
+[childPTE + 11] = R0;
+[childPTE + 12] = 0;
+[childPTE + 13] = userSP;
+
+alias iter R9;
+iter = 0;
+while (iter<16) do
+	[PAGE_TABLE_BASE + childPID * 20 + iter] = [PTBR + iter];
+	iter = iter + 1;
+endwhile;
+
+iter = 4;
+while (iter<16) do
+	if ([PTBR + iter] != -1) then
+		[MEMORY_FREE_LIST + [PTBR + iter] ] = [MEMORY_FREE_LIST + [PTBR + iter] ] + 1;
+	endif;
+	
+	iter = iter + 2;
+endwhile;
+
+iter = 0;
+while (iter<8) do
+	[[childPTE + 11] * 512 + 496 + iter] = [[currentPTE + 11] * 512 + 496 + iter];
+	[[childPTE + 11] * 512 + 496 + iter + 1] = [[currentPTE + 11] * 512 + 496 + iter + 1];
+	iter = iter + 1;
+endwhile;
+
+
+iter =0;
+while(iter < 10) do
+	[DISK_MAP_TABLE + childPID * 10 + iter] = [DISK_MAP_TABLE + currentPID * 10 + iter];
+	iter = iter + 1;
+endwhile;
+
+
+
+iter = 0;
+while(iter < 512) do
+	[ [PAGE_TABLE_BASE + childPID * 20 + 16] * 512 + iter] = [[PTBR + 16] * 512 + iter] ;
+	iter = iter + 1;
+endwhile;
+iter = 0;
+while(iter < 512) do
+	[ [PAGE_TABLE_BASE + childPID * 20 + 18] * 512 + iter] = [[PTBR + 18] * 512 + iter] ;
+	iter = iter + 1;
+endwhile;
+
+
+
+[ [childPTE + 11] * 512 ] = BP;
+
+[ [ PAGE_TABLE_BASE + childPID * 20  + ( (userSP-1) / 512) * 2] * 512 + (userSP - 1) % 512] = 0;
+[ [PTBR + ( (userSP-1) / 512) * 2] * 512 + (userSP - 1) % 512] = childPID;
+
+[currentPTE + 9] = 0;
+SP = [currentPTE + 13];
+ireturn;

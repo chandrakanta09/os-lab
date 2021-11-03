@@ -1,0 +1,36 @@
+int main()
+{
+decl
+    int temp, Fret, a;
+    string command;
+enddecl
+begin
+    a=1;
+    while(a == 1) do
+        temp = exposcall("Write",-2,"Enter command");
+        temp = exposcall("Read",-1, command);
+        if(command != "Shutdown") then
+            Fret = exposcall("Fork");
+            
+            if(Fret < 0) then
+                temp = exposcall("Write",-2, "Fork Failed");
+                continue;
+            endif;
+            
+            if(Fret == 0) then
+                temp = exposcall("Exec",command);
+                if(temp != 0) then
+                    temp = exposcall("Write",-2, "BAD COMMAND");
+                    break;
+                endif;
+            else    
+                temp = exposcall("Wait",Fret);
+            endif;
+        else
+            temp = exposcall("Shutdown");
+            break;
+        endif;
+    endwhile;
+    return 0;
+end
+}

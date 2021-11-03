@@ -1,0 +1,75 @@
+alias currentPID R4;
+alias currentPTE R5;
+alias userSP R6;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 13] = SP;
+userSP = SP;
+SP = [currentPTE + 11] * 512 - 1;
+
+alias SystemCallNum R7;
+SystemCallNum = [[PTBR + ( (userSP-5) / 512 ) * 2] * 512 + (userSP - 5) % 512 ];
+
+alias iter R8;
+
+//Semlock
+if (SystemCallNum == 19) then
+
+    [currentPTE + 9] = 19;
+    alias semID R9;
+    alias semInd R10;
+    semID = [[PTBR + ( (userSP-4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+    if (semID < 0 || semID > 8 || [ [currentPTE + 11] * 512 + 496 + semID*2] == 0) then
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;
+        [currentPTE + 9] = 0;
+        SP = [currentPTE + 13];
+        ireturn;
+    endif;
+    semInd = [ [currentPTE + 11] * 512 + 496 + semID*2 + 1];
+        
+    while ([SEMAPHORE_TABLE + semInd * 4] != -1) do
+        [currentPTE + 4] = WAIT_SEMAPHORE;
+        [currentPTE + 5] = semInd;
+        multipush(R4,R5,R6,R7,R8,R9,R10);
+        call SCHEDULER;
+        multipop(R4,R5,R6,R7,R8,R9,R10);
+    endwhile;
+
+    [SEMAPHORE_TABLE + semInd * 4] = currentPID;
+    [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+endif;
+
+//SemUnlock
+if (SystemCallNum == 20) then
+    [currentPTE + 9] = 20;
+    alias semID R9;
+    alias semInd R10;
+    semID = [[PTBR + ( (userSP-4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+    if (semID < 0 || semID > 8 || [ [currentPTE + 11] * 512 + 496 + semID*2] == 0) then
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;
+        [currentPTE + 9] = 0;
+        SP = [currentPTE + 13];
+        ireturn;
+    endif;
+    semInd = [ [currentPTE + 11] * 512 + 496 + semID*2 + 1];
+    if ([SEMAPHORE_TABLE + semInd * 4] != currentPID) then
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -2;
+        [currentPTE + 9] = 0;
+        SP = [currentPTE + 13];
+        ireturn;
+    endif;
+    [SEMAPHORE_TABLE + semInd * 4] = -1;
+    iter = 0;
+    while (iter < 16) do
+        if([PROCESS_TABLE + iter * 16 + 1] != -1 && [PROCESS_TABLE + iter * 16 + 4] == WAIT_SEMAPHORE && [PROCESS_TABLE + iter * 16 + 5] == semInd) then
+            [PROCESS_TABLE + iter * 16 + 4] = READY;
+        endif;
+        iter = iter + 1;        
+    endwhile;
+    [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;    
+endif;
+
+[currentPTE + 9] = 0;
+SP = [currentPTE + 13];
+ireturn;

@@ -1,0 +1,85 @@
+//readme
+//process manager
+//function no	name		arguments
+//	1	get pcb entry	 Nil
+//	2	free user area page	 PID
+//	3	exit process	 PID
+//	4	free page table	 PID
+//	5	kill all		 PID
+//print R1;
+alias functionNum R1;
+alias PID R2;
+if (functionNum == 3) then
+	multipush(R1,R2);
+	R1=4;
+	//R2 already contains PID
+	call MOD_1;
+	multipop(R1,R2);
+	multipush(R1,R2);
+	R1=2;
+	//R2 already contains PID
+	call MOD_1;
+	multipop(R1,R2);
+	[PROCESS_TABLE + PID * 16 + 4] = TERMINATED;
+endif;
+
+if (functionNum == 4) then
+	alias iter R3;
+	[PAGE_TABLE_BASE + PID * 20 ] = -1;
+	[PAGE_TABLE_BASE + PID * 20 + 1] = "0000";
+	[PAGE_TABLE_BASE + PID * 20 + 2] = -1;
+	[PAGE_TABLE_BASE + PID * 20 + 3] = "0000";
+	iter = 2;
+	while(iter < 10) do
+		if ([PAGE_TABLE_BASE + PID * 20 + iter * 2] != -1) then
+			multipush(R1,R2,R3);
+			R1=2;
+			R2=[PAGE_TABLE_BASE + PID * 20 + iter * 2];
+			call MOD_2;
+			multipop(R1,R2,R3);
+			[PAGE_TABLE_BASE + PID * 20 + iter * 2] = -1;
+			[PAGE_TABLE_BASE + PID * 20 + iter * 2 + 1] = "0000";
+		endif;
+		iter = iter + 1;
+	endwhile;
+	if ([DISK_MAP_TABLE + PID * 10 + 2] != -1 ) then
+		multipush(R1,R2,R3);
+		R1=4;
+		R2=[DISK_MAP_TABLE + PID * 10 + 2];
+		call MOD_2;
+		multipop(R1,R2,R3);
+		multipush(R1,R2,R3);
+		R1=4;
+		R2=[DISK_MAP_TABLE + PID * 10 + 3];
+		call MOD_2;
+		multipop(R1,R2,R3);
+	endif;
+	if ([DISK_MAP_TABLE + PID * 10 + 8] != -1 ) then
+		multipush(R1,R2,R3);
+		R1=4;
+		R2=[DISK_MAP_TABLE + PID * 10 + 8];
+		call MOD_2;
+		multipop(R1,R2,R3);
+	endif;
+	if ([DISK_MAP_TABLE + PID * 10 + 9] != -1 ) then
+		multipush(R1,R2,R3);
+		R1=4;
+		R2=[DISK_MAP_TABLE + PID * 10 + 9];
+		call MOD_2;
+		multipop(R1,R2,R3);
+	endif;
+	iter = 0;
+	while (iter < 10) do
+		[DISK_MAP_TABLE + PID * 10 + iter] = -1;
+		iter = iter + 1;
+	endwhile;
+endif;
+
+if (functionNum == 2) then
+	multipush(R1,R2);
+	R1=2;
+	R2=[PROCESS_TABLE + PID * 16 + 11];
+	call MOD_2;
+	multipop(R1,R2);
+endif;
+return;

@@ -1,0 +1,63 @@
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+backup;
+multipush(EIP);
+alias currentPID R0;
+alias currentPTE R1;
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 9] = - 1;
+if (EC != 0 || [currentPTE + 13] == (PTLR * 512)-1) then
+	if (EC==1) then
+		print "Illegal insruction";
+	endif;
+	if (EC==2) then
+		print "Illegal memory access";
+	endif;
+	if (EC==3) then
+		print "Arithmetic exception";
+	endif;
+	R1 = 3;
+	R2 = [SYSTEM_STATUS_TABLE + 1];
+	call MOD_1;
+	call SCHEDULER;
+endif;
+
+if (EPN == 2 || EPN == 3) then
+	multipush(R0,R1,R2,R3,R4,R5);
+	R1=1;
+	call MOD_2;
+	[PTBR+4] = R0;
+	[PTBR+5] = "1110";
+	multipop(R0,R1,R2,R3,R4,R5);
+
+	multipush(R0,R1,R2,R3,R4,R5);
+	R1=1;
+	call MOD_2;
+	[PTBR+6] = R0;
+	[PTBR+7] = "1110";
+	multipop(R0,R1,R2,R3,R4,R5);
+else
+	alias blockNum R3;
+	blockNum = [DISK_MAP_TABLE + currentPID * 10 + EPN];
+	multipush(R0,R1,R2,R3,R4,R5);
+	R1 = 5;
+	R2 = blockNum;
+	R3 = [SYSTEM_STATUS_TABLE + 1];
+	call MOD_2;
+	[PTBR + EPN * 2] = R0;
+	[PTBR + EPN * 2 + 1] = "1100";
+	multipop(R0,R1,R2,R3,R4,R5);
+
+endif;
+
+
+[currentPTE + 9] = 0;
+multipop(EIP);
+restore;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
+SP = SP + 1;
+[[PTBR +(SP/512)*2]*512 + SP % 512] = EIP;
+
+ireturn;
+

@@ -1,0 +1,119 @@
+alias currentPID R4;
+alias currentPTE R5;
+alias userSP R6;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 13] = SP;
+userSP = SP;
+SP = [currentPTE + 11] * 512 - 1;
+
+alias SystemCallNum R7;
+SystemCallNum = [[PTBR + ( (userSP-5) / 512 ) * 2] * 512 + (userSP - 5) % 512 ];
+
+alias iter R8;
+
+if (SystemCallNum == 1) then
+    [currentPTE + 9] = 1;
+    alias fileName R9;
+    alias permission R10;
+    fileName = [[PTBR + ( (userSP-4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+    permission = [[PTBR + ( (userSP-3) / 512 ) * 2] * 512 + (userSP - 3) % 512 ];
+    iter = 0;
+    while (iter < 60) do
+        if ([INODE_TABLE + iter * 16 + 1] == -1) then
+            [INODE_TABLE + iter * 16 + 1] = -1;
+            break;
+        endif;
+        iter = iter + 1;
+    endwhile;
+    if (iter == 60) then
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;
+    else
+        [INODE_TABLE + iter * 16] = DATA;
+        [INODE_TABLE + iter * 16 + 1] = fileName;
+        [INODE_TABLE + iter * 16 + 2] = 0;
+        [INODE_TABLE + iter * 16 + 3] = [currentPTE + 3];
+        [INODE_TABLE + iter * 16 + 4] = permission;
+        [ROOT_FILE + iter * 8] = fileName;
+        [ROOT_FILE + iter * 8 + 1] = 0;
+        [ROOT_FILE + iter * 8 + 2] = DATA;
+        [ROOT_FILE + iter * 8 + 3] = [USER_TABLE + [currentPTE + 3] * 2];
+        [ROOT_FILE + iter * 8 + 4] = permission;
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+    endif;
+    
+endif;
+
+if (SystemCallNum == 4) then
+    alias fileName R9;
+    alias inodeInd R10;
+    fileName = [[PTBR + ( (userSP-4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+    iter = 0;
+    while (iter < 60) do
+        if ([INODE_TABLE + iter * 16 + 1] == fileName) then
+            inodeInd = iter;
+            break;
+        endif;
+        iter = iter + 1;
+    endwhile;
+
+    if ([INODE_TABLE + inodeInd * 16 + 4] == EXCLUSIVE && ([currentPTE + 3] != 1 || [currentPTE + 3] != [INODE_TABLE + inodeInd * 16 + 3])) then
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;
+        [currentPTE + 9] = 0;
+        SP = [currentPTE + 13];
+        ireturn;
+    endif;
+
+    if ([FILE_STATUS_TABLE + inodeInd*4 + 1] > 0) then
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -2;
+        [currentPTE + 9] = 0;
+        SP = [currentPTE + 13];
+        ireturn;
+    endif;
+
+    multipush(R1,R4,R5,R6,R7,R9,R10);
+    R1=4;
+    R2=currentPID;
+    R3=inodeInd;
+    call MOD_0;
+    multipop(R1,R4,R5,R6,R7,R9,R10);
+
+    [INODE_TABLE + inodeInd * 16] = -1;
+    [INODE_TABLE + inodeInd * 16 + 1] = -1;
+    [INODE_TABLE + inodeInd * 16 + 2] = 0;
+    [INODE_TABLE + inodeInd * 16 + 3] = -1;
+    [INODE_TABLE + inodeInd * 16 + 4] = -1;
+    [ROOT_FILE + inodeInd * 8] = -1;
+    [ROOT_FILE + inodeInd * 8 + 1] = 0;
+    [ROOT_FILE + inodeInd * 8 + 2] = -1;
+    [ROOT_FILE + inodeInd * 8 + 3] = -1;
+    [ROOT_FILE + inodeInd * 8 + 4] = -1;
+
+    iter = 8;
+    while (iter < 12) do
+        if ([INODE_TABLE + inodeInd * 16 + iter] != -1) then
+            if ([BUFFER_TABLE + ([INODE_TABLE + inodeInd * 16 + iter] % 4) * 4] == [INODE_TABLE + inodeInd * 16 + iter]) then
+                [BUFFER_TABLE + ([INODE_TABLE + inodeInd * 16 + iter] % 4) * 4 + 1] = 0;
+            endif;
+            multipush(R1,R4,R5,R6,R7,R9,R10);
+            R1=4;
+            R2=[INODE_TABLE + inodeInd * 16 + iter];
+            call MOD_2;
+            multipop(R1,R4,R5,R6,R7,R9,R10);
+        endif;
+        iter = iter + 1;
+    endwhile;
+
+    multipush(R1,R4,R5,R6,R7,R8,R9,R10);
+    R1=5;
+    R2=currentPID;
+    R3=inodeInd;
+    call MOD_0;
+    multipop(R1,R4,R5,R6,R7,R8,R9,R10);
+
+endif;
+
+[currentPTE + 9] = 0;
+SP = [currentPTE + 13];
+ireturn;

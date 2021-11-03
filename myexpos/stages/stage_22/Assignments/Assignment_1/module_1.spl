@@ -1,0 +1,157 @@
+//readme
+//process manager
+//function no	name		arguments
+//	1	get pcb entry	 Nil
+//	2	free user area page	 PID
+//	3	exit process	 PID
+//	4	free page table	 PID
+//	5	kill all		 PID
+//	6					PID
+//print R1;
+alias functionNum R1;
+alias PID R2;
+if (functionNum == 1) then
+	alias iter R3;
+	iter = 1;
+	while(iter < 16) do
+		if([PROCESS_TABLE + iter*16 + 1] == -1 || [PROCESS_TABLE + iter*16 + 4] == TERMINATED) then
+			[PROCESS_TABLE + iter*16 + 1] = iter;
+			[PROCESS_TABLE + iter*16 + 4] = ALLOCATED;
+			[PROCESS_TABLE + iter*16 + 14] = PAGE_TABLE_BASE + iter * 20;
+			[PROCESS_TABLE + iter*16 + 15] = 10;
+			R0 = iter;
+			return;
+		endif;
+		iter = iter + 1;
+	endwhile;
+	R0 = -1;
+	return;
+endif;
+if (functionNum == 3) then
+	alias iter R3;
+	multipush(R1,R2);
+	R1=4;
+	//R2 already contains PID
+	call MOD_1;
+	multipop(R1,R2);
+	multipush(R1,R2);
+	R1=2;
+	//R2 already contains PID
+	call MOD_1;
+	multipop(R1,R2);
+	[PROCESS_TABLE + PID * 16 + 4] = TERMINATED;
+	if ([PROCESS_TABLE + PID * 16 + 9] != 9) then
+		iter = 1;
+		while(iter < 16) do
+			if ([PROCESS_TABLE + iter * 16 + 1]!=-1) then
+				if ( [PROCESS_TABLE + iter * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + iter * 16 + 5] == PID) then
+					[PROCESS_TABLE + iter * 16 + 4] = READY;
+				endif;
+				if ( [PROCESS_TABLE + iter * 16 + 2] == PID) then
+					[PROCESS_TABLE + iter * 16 + 2] = -1;
+				endif;
+			endif;
+			iter = iter + 1;
+		endwhile;
+	endif;
+endif;
+
+if (functionNum == 4) then
+	alias iter R3;
+	[PAGE_TABLE_BASE + PID * 20 ] = -1;
+	[PAGE_TABLE_BASE + PID * 20 + 1] = "0000";
+	[PAGE_TABLE_BASE + PID * 20 + 2] = -1;
+	[PAGE_TABLE_BASE + PID * 20 + 3] = "0000";
+	iter = 2;
+	while(iter < 10) do
+		if ([PAGE_TABLE_BASE + PID * 20 + iter * 2] != -1) then
+			multipush(R1,R2,R3);
+			R1=2;
+			R2=[PAGE_TABLE_BASE + PID * 20 + iter * 2];
+			call MOD_2;
+			multipop(R1,R2,R3);
+			[PAGE_TABLE_BASE + PID * 20 + iter * 2] = -1;
+			[PAGE_TABLE_BASE + PID * 20 + iter * 2 + 1] = "0000";
+		endif;
+		iter = iter + 1;
+	endwhile;
+	if ([DISK_MAP_TABLE + PID * 10 + 2] != -1 ) then
+		multipush(R1,R2,R3);
+		R1=4;
+		R2=[DISK_MAP_TABLE + PID * 10 + 2];
+		call MOD_2;
+		multipop(R1,R2,R3);
+		multipush(R1,R2,R3);
+		R1=4;
+		R2=[DISK_MAP_TABLE + PID * 10 + 3];
+		call MOD_2;
+		multipop(R1,R2,R3);
+	endif;
+	if ([DISK_MAP_TABLE + PID * 10 + 8] != -1 ) then
+		multipush(R1,R2,R3);
+		R1=4;
+		R2=[DISK_MAP_TABLE + PID * 10 + 8];
+		call MOD_2;
+		multipop(R1,R2,R3);
+	endif;
+	if ([DISK_MAP_TABLE + PID * 10 + 9] != -1 ) then
+		multipush(R1,R2,R3);
+		R1=4;
+		R2=[DISK_MAP_TABLE + PID * 10 + 9];
+		call MOD_2;
+		multipop(R1,R2,R3);
+	endif;
+	iter = 0;
+	while (iter < 10) do
+		[DISK_MAP_TABLE + PID * 10 + iter] = -1;
+		iter = iter + 1;
+	endwhile;
+endif;
+
+if (functionNum == 2) then
+	alias PTE R3;
+	alias iter R4;
+	iter = 0;
+	while (iter < 8) do
+		if ( [ [PTE + 11] * 512 + 496 + iter*2] == 1) then
+            multipush(R1,R2,R3,R4);
+			R1=7;
+			R2=[ [PTE + 11] * 512 + 496 + iter*2 + 1];
+			call MOD_0;
+			multipop(R1,R2,R3,R4);
+        endif;
+		iter = iter + 1;
+	endwhile;
+	multipush(R1,R2,R3,R4);
+	R1=2;
+	R2=[PROCESS_TABLE + PID * 16 + 11];
+	call MOD_2;
+	multipop(R1,R2,R3,R4);
+endif;
+if (functionNum == 6) then
+	
+	alias iter R3;
+	alias flag R4;
+	flag = 1;
+	while(flag == 1) do
+		
+		iter = 2;
+		while (iter < 16) do
+			if ([PROCESS_TABLE + iter * 16 + 1] != -1 && [PROCESS_TABLE + iter * 16 + 4] != TERMINATED) then
+				[PROCESS_TABLE + PID * 16 + 4] = WAIT_PROCESS;
+				[PROCESS_TABLE + PID * 16 + 5] = iter;
+				break;
+			endif;
+			iter = iter + 1;
+		endwhile;
+		if (iter == 16) then
+			flag = 0;
+		else
+			multipush(R1,R2,R3,R4,R5,R6,R7,R8,R9,R10);
+			call SCHEDULER;
+			multipop(R1,R2,R3,R4,R5,R6,R7,R8,R9,R10);
+		endif;
+
+	endwhile;
+endif;
+return;

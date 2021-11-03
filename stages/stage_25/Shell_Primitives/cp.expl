@@ -1,0 +1,25 @@
+int main()
+{
+    decl
+        int temp,fileDesc1,fileDesc2;
+        string fileName1,fileName2,word;
+    enddecl
+    begin
+        read(fileName1);
+        read(fileName2);
+        
+        fileDesc1 = exposcall("Open",fileName1);
+        temp = exposcall("Create",fileName2,1);
+        fileDesc2 = exposcall("Open",fileName2);
+        temp = exposcall("Read",fileDesc1,word);
+
+        while (temp != -2) do
+            temp = exposcall("Write",fileDesc2,word);
+            temp = exposcall("Read",fileDesc1,word);
+        endwhile;
+
+        temp = exposcall("Close",fileDesc1);
+        temp = exposcall("Close",fileDesc2);
+        return 0;
+    end
+}

@@ -1,0 +1,86 @@
+//readme
+//resource manager
+//function number 	name		Arguments				
+//	1	Acquire buffer	buffer no, PID
+//	2	Release buffer	buffer no, PID
+//	3	Acquire disk	PID
+//	4	Acquire inode	inodeindex, PID
+//	5	Release inode	inodeindex, PID
+//	6	Acquire semaphore	PID
+//	7	Release semaphore	PID
+//	8	Acquire terminal	PID
+//	9	Release terminal	PID
+alias functionNum R1;
+alias currentPID R2;
+alias returnVal R0;
+if (functionNum == 3) then
+	while([DISK_STATUS_TABLE] == 1) do
+		[PROCESS_TABLE + currentPID * 16 + 4] = WAIT_DISK;
+		multipush(R2);
+		call SCHEDULER;
+		multipop(R2);
+	endwhile;
+	[DISK_STATUS_TABLE] = 1;
+	[DISK_STATUS_TABLE + 4] = currentPID;
+	//breakpoint;
+	return;
+endif;
+
+if (functionNum == 6) then
+	alias iter R4;
+	iter = 0;
+	while (iter < 32) do
+		if ([SEMAPHORE_TABLE + iter*4 + 1] == 0) then
+			[SEMAPHORE_TABLE + iter*4 + 1] = 1;
+			returnVal = iter;
+			break;
+		endif;
+		iter = iter + 1;
+	endwhile;
+	return;
+endif;
+
+if (functionNum == 7) then
+	alias semID R3;
+	if ([SEMAPHORE_TABLE + semID * 4 ] == currentPID) then
+		[SEMAPHORE_TABLE + semID * 4 ] = -1;
+		alias iter R4;
+		iter = 0;
+		while (iter < 16) do
+			if ([PROCESS_TABLE + iter * 16 + 1] != -1 && [PROCESS_TABLE + iter * 16 + 4] == WAIT_SEMAPHORE && [PROCESS_TABLE + iter * 16 + 5] == semID) then
+				[PROCESS_TABLE + iter * 16 + 4] = READY;
+			endif;
+			iter = iter + 1;
+		endwhile;
+	endif;
+
+	[SEMAPHORE_TABLE + semID * 4 + 1] = [SEMAPHORE_TABLE + semID * 4 + 1] - 1;
+	return;
+endif;
+
+if (functionNum==8) then
+	while ([TERMINAL_STATUS_TABLE] == 1) do
+		[PROCESS_TABLE + currentPID * 16 + 4] = WAIT_TERMINAL;
+		multipush(R2);
+		call SCHEDULER;
+		multipop(R2);
+	endwhile;
+	[TERMINAL_STATUS_TABLE] = 1;
+	[TERMINAL_STATUS_TABLE + 1] = currentPID;
+	return;
+endif;
+if (functionNum==9) then
+	alias iter R4;
+	if ( currentPID==[TERMINAL_STATUS_TABLE + 1] ) then
+		[TERMINAL_STATUS_TABLE] = 0;
+		iter = 1;
+		while (iter < 16) do
+			if( [PROCESS_TABLE + iter * 16 + 1] != -1 && [PROCESS_TABLE + iter * 16 + 4] ==WAIT_TERMINAL ) then
+				[PROCESS_TABLE + iter * 16 + 4] = READY;
+			endif;
+			iter = iter + 1;
+		endwhile;
+		returnVal = 0;
+	endif;
+	return;
+endif;

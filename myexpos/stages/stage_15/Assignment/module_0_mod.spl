@@ -1,0 +1,43 @@
+//readme
+//resource manager
+//function number 	name		Arguments				
+//	1	Acquire buffer	buffer no, PID
+//	2	Release buffer	buffer no, PID
+//	3	Acquire disk	PID
+//	4	Acquire inode	inodeindex, PID
+//	5	Release inode	inodeindex, PID
+//	6	Acquire semaphore	PID
+//	7	Release semaphore	PID
+//	8	Acquire terminal	PID
+//	9	Release terminal	PID
+alias functionNum R1;
+alias currentPID R2;
+alias returnVal R0;
+if (functionNum==8) then
+	while ([TERMINAL_STATUS_TABLE] == 1) do
+		[PROCESS_TABLE + currentPID * 16 + 4] = WAIT_TERMINAL;
+		multipush(R2);
+		call SCHEDULER;
+		multipop(R2);
+	endwhile;
+	[TERMINAL_STATUS_TABLE] = 1;
+	[TERMINAL_STATUS_TABLE + 1] = currentPID;
+	breakpoint;
+	return;
+endif;
+if (functionNum==9) then
+	alias iter R4;
+	if ( currentPID==[TERMINAL_STATUS_TABLE + 1] ) then
+		[TERMINAL_STATUS_TABLE] = 0;
+		iter = 1;
+		while (iter < 16) do
+			if( [PROCESS_TABLE + iter * 16 + 1] != -1 && [PROCESS_TABLE + iter * 16 + 4] ==WAIT_TERMINAL ) then
+				[PROCESS_TABLE + iter * 16 + 4] = READY;
+			endif;
+			iter = iter + 1;
+		endwhile;
+		returnVal = 0;
+	endif;
+	breakpoint;
+	return;
+endif;

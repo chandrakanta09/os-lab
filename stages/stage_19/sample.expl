@@ -1,0 +1,25 @@
+type
+  List
+  {
+    int data;
+    List next;
+  }
+endtype
+int main()
+{
+  decl
+    int length, x;
+    List p, q;
+  enddecl
+
+  begin
+    
+    x = initialize();
+    read(x);
+    p=alloc();
+    p.data=x;
+    p.next=null;
+    write(p.data);
+    return 0;
+  end
+}

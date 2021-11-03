@@ -1,0 +1,43 @@
+decl
+    int gcd(int n1,int n2);
+enddecl
+
+int gcd(int n1,int n2)
+{
+    decl
+        int small,big,temp;
+    enddecl
+    begin
+        if (n1>n2) then
+            big = n1;
+            small = n2;
+        else
+            big = n2;
+            small = n1;
+        endif;
+        
+        while(small != 0) do
+            temp = big;
+            big = small;
+            small = temp % big;
+        endwhile;
+        return big;
+    end
+    
+    
+}
+
+int main()
+{
+    decl
+        int n1,n2,out,temp;
+    enddecl
+    begin
+        temp = exposcall("Read",-1,n1);
+        temp = exposcall("Read",-1,n2);
+        out = gcd(n1,n2);
+        temp = exposcall("Write",-2,"Gcd is");
+        temp = exposcall("Write",-2,out);
+        return 0;
+    end
+}

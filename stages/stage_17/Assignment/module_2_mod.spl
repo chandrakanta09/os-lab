@@ -1,0 +1,49 @@
+//readme
+//memory manager
+//function no	name		arguments
+//	1	get free page	 Nil
+//	2	release page	 Page Number
+//	3	get free block	 Nil
+//	4	release block	 Block Number
+//	5	get code page	 Block Number, PID
+//	6	get swap block	 Nil
+breakpoint;
+alias functionNum R1;
+if (functionNum == 1) then
+	[SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
+	while ([SYSTEM_STATUS_TABLE + 2] == 0) do
+		[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = WAIT_MEM; 
+		call SCHEDULER;
+	endwhile;
+	[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+	[SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;
+	alias iter R2;
+	iter = 83;
+	while(iter < 128) do
+		if ([MEMORY_FREE_LIST + iter] == 0) then
+			[MEMORY_FREE_LIST + iter] = 1;
+			R0 = iter;
+            breakpoint;
+			return;
+		endif;
+		iter = iter + 1;
+	endwhile;
+	return;
+endif;
+if (functionNum == 2) then
+	alias PageNum R2;
+	[MEMORY_FREE_LIST + PageNum] = [MEMORY_FREE_LIST + PageNum] - 1;
+	if ([MEMORY_FREE_LIST + PageNum] == 0) then
+		[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] + 1;
+	endif;
+	alias iter R3;
+	iter = 1;
+	while(iter < 16) do
+		if ([PROCESS_TABLE + iter * 16 + 1] != -1 && [PROCESS_TABLE + iter * 16 + 4] == WAIT_MEM) then
+			[PROCESS_TABLE + iter * 16 + 4] = READY;
+		endif;
+		iter = iter + 1;
+	endwhile;
+    breakpoint;
+	return;
+endif;

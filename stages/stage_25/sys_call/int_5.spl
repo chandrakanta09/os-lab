@@ -1,0 +1,111 @@
+alias currentPID R4;
+alias currentPTE R5;
+alias userSP R6;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+currentPTE = PROCESS_TABLE + currentPID * 16;
+[currentPTE + 13] = SP;
+userSP = SP;
+SP = [currentPTE + 11] * 512 - 1;
+
+alias SystemCallNum R7;
+SystemCallNum = [[PTBR + ( (userSP-5) / 512 ) * 2] * 512 + (userSP - 5) % 512 ];
+
+alias iter R8;
+
+//---------------------------------------------------------------------------------------
+
+//Open system call
+if (SystemCallNum == 2) then
+    [currentPTE + 9] = 2;
+    alias fileName R9;
+    fileName = [[PTBR + ( (userSP-4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+    
+    multipush(R4,R5,R6,R7,R8,R9,R10);
+    R1 = 3;
+    R2 = fileName;
+    call MOD_3;
+    multipop(R4,R5,R6,R7,R8,R9,R10);
+    iter = 0;
+    while (iter < 8) do
+        if ([[currentPTE + 11] * 512  + 496 + iter * 2] == -1) then
+            [[currentPTE + 11] * 512  + 496 + iter * 2] = 0;
+            [[currentPTE + 11] * 512  + 496 + iter * 2 + 1] = R0;
+            break;
+        endif;
+        iter = iter + 1;
+    endwhile;
+    
+    [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = iter;
+
+endif;
+
+//-------------------------------------------------------------------------------------------
+
+//Close system call
+if (SystemCallNum == 3) then
+    [currentPTE + 9] = 3;
+    alias FileDesc R9;
+    FileDesc = [[PTBR + ( (userSP-4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+    if (FileDesc < 0 || FileDesc > 8 || [ [currentPTE + 11] * 512 + 496 + FileDesc*2] != 0) then
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;
+        [currentPTE + 9] = 0;
+        SP = [currentPTE + 13];
+        ireturn;
+    endif;
+    alias OpenFileInd R10;
+    OpenFileInd = [ [currentPTE + 11] * 512 + 496 + FileDesc*2 + 1];
+    
+    [ [currentPTE + 11] * 512 + 496 + FileDesc*2] = -1;
+    [ [currentPTE + 11] * 512 + 496 + FileDesc*2 + 1] = -1;
+
+    multipush(R4,R5,R6,R7,R8,R9,R10);
+    R1 = 4;
+    R2 = OpenFileInd;
+    call MOD_3;
+    multipop(R4,R5,R6,R7,R8,R9,R10);
+
+endif;
+
+//------------------------------------------------------------------------
+
+//Seek system call
+if (SystemCallNum == 6) then
+    [currentPTE + 9] = 6;
+    alias fileDesc R9;
+    alias offset R10;
+    alias OpenFileInd R11;
+    alias newPos R12;
+    fileDesc = [[PTBR + ( (userSP-4) / 512 ) * 2] * 512 + (userSP - 4) % 512 ];
+    offset = [[PTBR + ( (userSP-3) / 512 ) * 2] * 512 + (userSP - 3) % 512 ];
+
+    if (fileDesc < 0 || fileDesc > 8 || [ [currentPTE + 11] * 512 + 496 + fileDesc*2] != 0) then
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -1;
+        [currentPTE + 9] = 0;
+        SP = [currentPTE + 13];
+        ireturn;
+    endif;
+    
+    OpenFileInd = [[currentPTE + 11] * 512 + 496 + fileDesc * 2 + 1];
+    if (offset == 0) then
+        [OPEN_FILE_TABLE + OpenFileInd * 4 + 2] = 0;
+        [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+    else
+        newPos = [OPEN_FILE_TABLE + OpenFileInd * 4 + 2] + offset;           
+        if (newPos > [INODE_TABLE + [OPEN_FILE_TABLE + OpenFileInd * 4] * 16 + 2]) then
+                [OPEN_FILE_TABLE + OpenFileInd * 4 + 2] = [INODE_TABLE + [OPEN_FILE_TABLE + OpenFileInd * 4] * 16 + 2];
+                [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+        else
+            if (newPos < 0) then
+                [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = -2;
+            else
+                [OPEN_FILE_TABLE + OpenFileInd * 4 + 2] = newPos;
+                [[PTBR + ( (userSP-1) / 512 ) * 2] * 512 + (userSP - 1) % 512 ] = 0;
+            endif;
+        endif;
+    endif;
+endif;
+
+[currentPTE + 9] = 0;
+SP = [currentPTE + 13];
+ireturn;

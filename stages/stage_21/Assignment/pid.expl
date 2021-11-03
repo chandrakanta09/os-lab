@@ -1,0 +1,11 @@
+int main()
+{
+    decl
+        int pid;
+    enddecl
+    begin
+        pid = exposcall("Getpid");
+        write(pid);
+        return 0;
+    end
+}

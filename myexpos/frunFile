@@ -1,0 +1,26 @@
+load --exhandler ../spl/final_act/exhandler.xsm
+load --library ../expl/library.lib
+load --os ../spl/final_act/os_startup.xsm
+load --idle ../expl/samples/stage23/idle.xsm
+load --init ../expl/samples/final_act/shell.xsm
+load --module 0 ../spl/final_act/modules/module_0.xsm
+load --module 1 ../spl/final_act/modules/module_1.xsm
+load --module 2 ../spl/final_act/modules/module_2.xsm
+load --module 3 ../spl/final_act/modules/module_3.xsm
+load --module 4 ../spl/final_act/modules/module_4.xsm
+load --module 5 ../spl/final_act/modules/scheduler.xsm
+load --module 7 ../spl/final_act/modules/bootmodule.xsm
+load --int=4 ../spl/final_act/int_4.xsm
+load --int=5 ../spl/final_act/int_5.xsm
+load --int=6 ../spl/final_act/read.xsm
+load --int=7 ../spl/final_act/int_7.xsm
+load --int=8 ../spl/final_act/fork.xsm
+load --int=9 ../spl/final_act/int_9.xsm
+load --int=10 ../spl/final_act/exit.xsm
+load --int=11 ../spl/final_act/int_11.xsm
+load --int=13 ../spl/final_act/int_13.xsm
+load --int=14 ../spl/final_act/int_14.xsm
+load --int=15 ../spl/final_act/shutdown.xsm
+load --int=timer ../spl/final_act/timer.xsm
+load --int=console ../spl/final_act/intr_cons.xsm
+load --int=disk ../spl/final_act/intr_disk.xsm

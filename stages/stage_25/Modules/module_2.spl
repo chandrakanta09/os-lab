@@ -1,0 +1,121 @@
+//readme
+//memory manager
+//function no	name		arguments
+//	1	get free page	 Nil
+//	2	release page	 Page Number
+//	3	get free block	 Nil
+//	4	release block	 Block Number
+//	5	get code page	 Block Number, PID
+//	6	get swap block	 Nil
+//print [SYSTEM_STATUS_TABLE + 1];
+//print "IN MOD_2";
+//print R1;
+//breakpoint;
+//print R1;
+alias functionNum R1;
+if (functionNum == 1) then
+	[SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
+	while ([SYSTEM_STATUS_TABLE + 2] == 0) do
+		[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = WAIT_MEM; 
+		call SCHEDULER;
+	endwhile;
+	[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+	[SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;
+	alias iter R2;
+	iter = 83;
+	while(iter < 128) do
+		if ([MEMORY_FREE_LIST + iter] == 0) then
+			[MEMORY_FREE_LIST + iter] = 1;
+			R0 = iter;
+			break;
+		endif;
+		iter = iter + 1;
+	endwhile;
+endif;
+
+if (functionNum == 2) then
+	alias PageNum R2;
+	[MEMORY_FREE_LIST + PageNum] = [MEMORY_FREE_LIST + PageNum] - 1;
+	if ([MEMORY_FREE_LIST + PageNum] < 0) then
+		breakpoint;
+		//print "Error Release";
+		//print [SYSTEM_STATUS_TABLE + 1];
+		//print [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4];
+	endif;
+	if ([MEMORY_FREE_LIST + PageNum] == 0) then
+		[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] + 1;
+	endif;
+	alias iter R3;
+	iter = 1;
+	while(iter < 16) do
+		if ([PROCESS_TABLE + iter * 16 + 1] != -1 && [PROCESS_TABLE + iter * 16 + 4] == WAIT_MEM) then
+			[PROCESS_TABLE + iter * 16 + 4] = READY;
+		endif;
+		iter = iter + 1;
+	endwhile;
+endif;
+
+if (functionNum == 3) then
+	alias iter R3;
+	iter = DISK_FREE_AREA;
+	R0 = -1;
+	while (iter < DISK_SWAP_AREA) do
+		if ([DISK_FREE_LIST + iter] == 0) then
+			[DISK_FREE_LIST + iter] = 1;
+			R0 = iter;
+			break;
+		endif;
+		iter = iter + 1;
+	endwhile;
+endif;
+
+if (functionNum == 4) then
+	alias blockNum R2;
+	[DISK_FREE_LIST + blockNum] = [DISK_FREE_LIST + blockNum] - 1;
+endif;
+
+if (functionNum == 5) then
+	alias blockNum R2;
+	alias PID R3;
+	alias iter1 R4;
+	alias iter2 R5;
+	iter1 = 1;
+	while (iter1 < 16) do
+		if ([PROCESS_TABLE + iter1 * 16 + 1] != -1 && [PROCESS_TABLE + iter1 * 16 + 4] != TERMINATED) then
+			iter2 = 4;
+			while (iter2 < 8) do
+				if ([DISK_MAP_TABLE + iter1 * 10 + iter2] == blockNum) then
+					if ([PAGE_TABLE_BASE + iter1*20 + iter2*2] != -1) then
+						R0 = [PAGE_TABLE_BASE + iter1*20 + iter2*2];
+						[MEMORY_FREE_LIST + R0] = [MEMORY_FREE_LIST + R0] + 1;
+						return;
+					endif;		
+				endif;
+				iter2 = iter2 + 1;
+			endwhile;	
+		
+			if (iter2 != 8) then
+				break;
+			endif;
+		endif;
+		iter1 = iter1 + 1;
+	endwhile;
+	if(iter1 == 16 && iter2==8) then
+		multipush(R1,R2,R3,R4,R5);
+		R1 = 1;
+		call MOD_2;
+		multipop(R1,R2,R3,R4,R5);
+		//breakpoint;
+		//print "start stepping";
+		multipush(R0,R1,R2,R3,R4,R5);
+		R1=2;
+		R3 = R0;
+		R4 = blockNum;
+		R2=[SYSTEM_STATUS_TABLE + 1];
+		call MOD_4;
+		multipop(R0,R1,R2,R3,R4,R5);
+		//print(R0);
+	endif;
+endif;
+//print "OUT MOD_2";
+return;
